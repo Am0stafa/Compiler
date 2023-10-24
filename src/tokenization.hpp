@@ -4,7 +4,7 @@
 
 // Syntax
 enum class TokenType{
-  exit,
+  exit, // return
   int_lit,
   semi,
   open_paren,
