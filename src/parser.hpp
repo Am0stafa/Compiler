@@ -1,8 +1,33 @@
-#pragma once
+// This file define data structures and a parser the main components and their roles:
 
+// ### 1. Node Structures:
+//    - Node structures are used to define the abstract syntax tree (AST) nodes. Each structure represents a different type of syntax element in the language being parsed. For example:
+//      - `NodeTermIntLit` represents integer literals.
+//      - `NodeTermIdent` represents identifiers.
+//      - `NodeBinExprAdd`, `NodeBinExprMulti`, `NodeBinExprSub`, and `NodeBinExprDiv` represent binary expressions for addition, multiplication, subtraction, and division, respectively.
+//      - `NodeStmtExit`, `NodeStmtLet`, `NodeStmtIf`, etc., represent different types of statements like exit, let, and if statements.
+//    - These structures use `std::variant` to model the different variants a node can have, which is a common pattern for implementing ASTs in a type-safe way.
+
+// ### 2. Parser Class:
+//    - The `Parser` class is responsible for parsing a sequence of tokens into an AST. It does this through a set of parsing functions like `parse_term`, `parse_expr`, `parse_stmt`, and `parse_prog`, each of which parses different parts of the syntax.
+//    - Recursive Descent Parsing: The parsing functions follow a recursive descent parsing strategy, where `parse_expr` and `parse_stmt` call themselves and each other recursively to parse nested expressions and statements.
+//    - Error Handling: There's basic error handling in the parser. When it encounters an unexpected token, it prints an error message to standard error and exits the program.
+//    - Memory Allocation: The parser uses an `ArenaAllocator` to allocate memory for AST nodes. This is likely done for efficiency, as arena allocation can be much faster than individually allocating nodes on the heap.
+
+// ### 3. Memory Allocation:
+//    - An `ArenaAllocator` is used for memory management, which is a common practice in compilers to manage memory efficiently and ensure that all allocated memory is freed when the compiler is done.
+
+// ### 4. Token Handling:
+//    - Token handling methods like `peek`, `consume`, and `try_consume` are used to inspect and consume tokens from the token stream as the parser processes the input.
+
+// ### 5. Parsing Strategy:
+//    - Operator Precedence Parsing: The `parse_expr` function seems to implement a form of operator precedence parsing to handle binary expressions with different levels of precedence.
+
+// In summary, this file lays out the foundation for parsing a simplified programming language by defining the necessary data structures for the AST and implementing a parser to construct the AST from a sequence of tokens. This parser utilizes a recursive descent parsing strategy, operator precedence parsing, and efficient memory allocation via an arena allocator to parse the programming language constructs into an AST.
+
+#pragma once
 #include <cassert>
 #include <variant>
-
 #include "./arena.hpp"
 #include "tokenization.hpp"
 

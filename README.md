@@ -1,29 +1,54 @@
-# Hydrogen Lang (CPP Compiler)
+# Hydro Language Hydrogen Lang (CPP Compiler)
 
-Hydrogen is a Hobby programming language. It is called Hydrogen because it is simple, lightweight, and will catch on
-fire if handled improperly🔥
 
-This compiler is written in C++ but hopefully it will get to a point where it can be self-hosted.
+## Grammar
+grammar of the Hydro language defined using Backus-Naur Form (BNF).\
 
-## Building
-
-Requires `nasm` and `ld` on a Linux operating system.
-
-```bash
-git clone https://github.com/orosmatthew/hydrogen-cpp
-cd hydrogen-cpp
-mkdir build
-cmake -S . -B build
-cmake --build build
+```plaintext
+[Prog] -> [Stmt]*
+[Stmt] ->   exit([Expr]);
+          | let ident = [Expr];
+          | if ([Expr])[Scope]
+[Scope] -> { [Stmt]* }
+[Expr] ->   [Term]
+          | [BinExpr]
+[BinExpr] ->   [Expr] * [Expr] { prec = 1 }
+            | [Expr] / [Expr] { prec = 1 }
+            | [Expr] + [Expr] { prec = 0 }
+            | [Expr] - [Expr] { prec = 0 }
+[Term] ->   int_lit
+          | ident
+          | ([Expr])
 ```
 
-Executable will be `hydro` in the `build/` directory.
+## Grammar Explanation
 
-## Contributing
+1. **Program ([Prog])**:
+    - A program is defined as a sequence of statements ([Stmt]). The asterisk denotes zero or more occurrences of statements.
 
-I am not accepting pull requests for now to better keep in sync with the accompanying video series. Possibly in the future.
+2. **Statement ([Stmt])**:
+    - A statement can be one of three forms:
+        - An `exit` statement with an expression enclosed in parentheses, followed by a semicolon.
+        - A `let` statement, where a new identifier is being assigned a value of some expression, followed by a semicolon.
+        - An `if` statement with a condition expression enclosed in parentheses, followed by a scope ([Scope]).
 
-## Watch the Development
+3. **Scope ([Scope])**:
+    - A scope is defined by curly braces enclosing zero or more statements.
 
-YouTube video
-series "[Creating a Compiler](https://www.youtube.com/playlist?list=PLUDlas_Zy_qC7c5tCgTMYq2idyyT241qs)" by Pixeled
+4. **Expression ([Expr])**:
+    - An expression can either be a term ([Term]) or a binary expression ([BinExpr]).
+
+5. **Binary Expression ([BinExpr])**:
+    - A binary expression represents basic arithmetic operations between two expressions:
+        - Multiplication and division have a precedence level of 1.
+        - Addition and subtraction have a precedence level of 0. The precedence levels indicate the order in which operations are evaluated, with higher precedence operations being evaluated first.
+
+6. **Term ([Term])**:
+    - A term can be:
+        - An integer literal (`int_lit`).
+        - An identifier (`ident`).
+        - An expression enclosed in parentheses, allowing for grouped expressions.
+
+---
+
+Feel free to copy the above text into a README file for your project. The Markdown syntax is used to format the text, making it readable and well-structured when viewed on platforms like GitHub.
