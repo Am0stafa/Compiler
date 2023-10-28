@@ -1,8 +1,8 @@
-# Hydro Language Hydrogen Lang (CPP Compiler)
+# Hydro Language Hydrogen Lang (C++ Compiler)
 
 
 ## Grammar
-grammar of the Hydro language defined using Backus-Naur Form (BNF).\
+grammar of the Hydro language defined using Backus-Naur Form (BNF).
 
 ```plaintext
 [Prog] -> [Stmt]*
@@ -20,6 +20,7 @@ grammar of the Hydro language defined using Backus-Naur Form (BNF).\
           | ident
           | ([Expr])
 ```
+<img width="479" alt="Screenshot 2023-10-27 at 1 20 59 AM" src="https://github.com/Am0stafa/compiler/assets/62848968/5376e7ff-d539-4e0d-ba15-992cca41d394">
 
 ## Grammar Explanation
 
