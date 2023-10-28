@@ -1,4 +1,6 @@
-// file that generates the assembly code
+// File that generates the assembly code (Code generation)
+// It takes in the root node of the AST and traverses that tree and while its traversing it generates the assembly code. I have different method for generating each node type.
+
 #pragma once
 #include "parser.hpp"
 #include <cassert>
@@ -7,12 +9,11 @@
 class Generator {
 public:
     inline explicit Generator(NodeProg prog)
-        : m_prog(std::move(prog))
+        : m_prog(std::move(prog)) // root of the tree
     {
     }
 
-    void gen_term(const NodeTerm* term)
-    {
+    void gen_term(const NodeTerm* term){
         struct TermVisitor {
             Generator& gen;
             void operator()(const NodeTermIntLit* term_int_lit) const
@@ -42,8 +43,7 @@ public:
         std::visit(visitor, term->var);
     }
 
-    void gen_bin_expr(const NodeBinExpr* bin_expr)
-    {
+    void gen_bin_expr(const NodeBinExpr* bin_expr){
         struct BinExprVisitor {
             Generator& gen;
             void operator()(const NodeBinExprSub* sub) const
@@ -88,8 +88,7 @@ public:
         std::visit(visitor, bin_expr->var);
     }
 
-    void gen_expr(const NodeExpr* expr)
-    {
+    void gen_expr(const NodeExpr* expr){
         struct ExprVisitor {
             Generator& gen;
             void operator()(const NodeTerm* term) const
@@ -115,8 +114,7 @@ public:
         end_scope();
     }
 
-    void gen_stmt(const NodeStmt* stmt)
-    {
+    void gen_stmt(const NodeStmt* stmt){
         struct StmtVisitor {
             Generator& gen;
             void operator()(const NodeStmtExit* stmt_exit) const
@@ -158,8 +156,7 @@ public:
         std::visit(visitor, stmt->var);
     }
 
-    [[nodiscard]] std::string gen_prog()
-    {
+    [[nodiscard]] std::string gen_prog(){
         m_output << "global _start\n_start:\n";
 
         for (const NodeStmt* stmt : m_prog.stmts) {
