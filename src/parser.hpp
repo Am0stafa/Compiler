@@ -147,11 +147,11 @@ public:
           return {};
       }
   }
-
+ 
   std::optional<NodeExpr*> parse_expr(int min_prec = 0){
     std::optional<NodeTerm*> term_lhs = parse_term();
     if (!term_lhs.has_value()) {
-      return {};
+      return {}; 
     }
     auto expr_lhs = m_allocator.alloc<NodeExpr>();
     expr_lhs->var = term_lhs.value();
@@ -159,22 +159,26 @@ public:
     while (true) {
       std::optional<Token> curr_tok = peek();
       std::optional<int> prec;
+
       if (curr_tok.has_value()) {
           prec = bin_prec(curr_tok->type);
           if (!prec.has_value() || prec < min_prec) {
-              break;
+            break;
           }
       }
       else {
-          break;
+        break;
       }
+
       Token op = consume();
       int next_min_prec = prec.value() + 1;
       auto expr_rhs = parse_expr(next_min_prec);
+
       if (!expr_rhs.has_value()) {
-          std::cerr << "Unable to parse expression" << std::endl;
-          exit(EXIT_FAILURE);
+        std::cerr << "\033[31mUnable to parse expression\033[0m" << std::endl;
+        exit(EXIT_FAILURE);
       }
+
       auto expr = m_allocator.alloc<NodeBinExpr>();
       auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
       if (op.type == TokenType::plus) {
