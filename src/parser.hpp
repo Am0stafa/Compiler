@@ -351,10 +351,10 @@ private:
   inline std::optional<Token> try_consume(TokenType type)
   {
       if (peek().has_value() && peek().value().type == type) {
-          return consume();
+        return consume();
       }
       else {
-          return {};
+        return {};
       }
   }
 
