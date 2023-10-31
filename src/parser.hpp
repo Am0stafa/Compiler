@@ -33,76 +33,94 @@
 #include "./arena.hpp"
 #include "tokenization.hpp"
 
+// Token representing an integer literal
 struct NodeTermIntLit {
     Token int_lit;
 };
 
+// Token representing an identifier
 struct NodeTermIdent {
     Token ident;
 };
 
+// Forward declaration of expression node
 struct NodeExpr;
 
+// Node representing an expression enclosed in parentheses
 struct NodeTermParen {
     NodeExpr* expr;
 };
 
+// Node representing a binary addition expression
 struct NodeBinExprAdd {
     NodeExpr* lhs;
     NodeExpr* rhs;
 };
 
+// Node representing a binary multiplication expression
 struct NodeBinExprMulti {
     NodeExpr* lhs;
     NodeExpr* rhs;
 };
 
+// Node representing a binary subtraction expression
 struct NodeBinExprSub {
     NodeExpr* lhs;
     NodeExpr* rhs;
 };
 
+// Node representing a binary division expression
 struct NodeBinExprDiv {
     NodeExpr* lhs;
     NodeExpr* rhs;
 };
 
+// Node representing any binary expression
 struct NodeBinExpr {
     std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*> var;
 };
 
+// Node representing a terminal symbol in an expression
 struct NodeTerm {
     std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*> var;
 };
 
+// Node representing an expression
 struct NodeExpr {
     std::variant<NodeTerm*, NodeBinExpr*> var;
 };
 
+// Node representing an exit statement
 struct NodeStmtExit {
     NodeExpr* expr;
 };
 
+// Node representing a let statement
 struct NodeStmtLet {
     Token ident;
     NodeExpr* expr;
 };
 
+// Forward declaration of statement node
 struct NodeStmt;
 
+// Node representing a block scope
 struct NodeScope {
     std::vector<NodeStmt*> stmts;
 };
 
+// Node representing an if statement
 struct NodeStmtIf {
     NodeExpr* expr;
     NodeScope* scope;
 };
 
+// Node representing a statement
 struct NodeStmt {
     std::variant<NodeStmtExit*, NodeStmtLet*, NodeScope*, NodeStmtIf*> var;
 };
 
+// Node representing the entire program
 struct NodeProg {
     std::vector<NodeStmt*> stmts;
 };
@@ -111,7 +129,7 @@ class Parser {
 public:
   inline explicit Parser(std::vector<Token> tokens)
     : m_tokens(std::move(tokens))
-    , m_allocator(1024 * 1024 * 4) // 4 mb
+    , m_allocator(1024 * 1024 * 4) // 4 mb memory
   {
   }
 
