@@ -112,12 +112,12 @@ public:
         tokens.push_back({ .type = TokenType::int_lit, .value = buf });
         buf.clear();
       }
-      // if not a digit, check if it is a (
+      // if not a digit, check if it is a bracket of type (
       else if (peek().value() == '(') {
         consume();
         tokens.push_back({ .type = TokenType::open_paren });
       }
-      // if not a (, check if it is a )
+      // if not a (, check if it is a bracket of type )
       else if (peek().value() == ')') {
         consume();
         tokens.push_back({ .type = TokenType::close_paren });
