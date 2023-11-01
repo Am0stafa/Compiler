@@ -247,33 +247,74 @@ public:
       return scope;
   }
 
+/**
+ * The `parse_stmt` function is part of the parsing process in a compiler,
+ * responsible for analyzing and transforming a segment of the input program
+ * into corresponding nodes in an Abstract Syntax Tree (AST) based on the
+ * types of statements present in the programming language being parsed.
+ *
+ * Function Signature:
+ * - Returns: `std::optional<NodeStmt*>`, indicating an optional pointer to
+ *   a `NodeStmt` object. An empty `std::optional` is returned if no matching
+ *   statement type is found or if there's a parsing error.
+ *
+ * Parsing Different Statement Types:
+ * - Exit Statement: Checks for an `exit` statement by looking for tokens
+ *   `exit` followed by an open parenthesis. A `NodeStmtExit` object is
+ *   created and an expression is parsed if present.
+ * - Let Statement: Checks for a `let` statement, looking for tokens `let`
+ *   followed by an identifier and an equals sign. A `NodeStmtLet` object
+ *   is created and an expression is parsed.
+ * - Scope: Activated when an open curly brace is found, indicating a new
+ *   scope. A `NodeStmt` object is created and the scope is parsed.
+ * - If Statement: Checks for an `if` statement, looking for the `if` token
+ *   followed by an open parenthesis. A `NodeStmtIf` object is created,
+ *   an expression and a scope are parsed.
+ *
+ * Error Handling:
+ * - Provides error feedback through `std::cerr` and may terminate the program
+ *   using `exit()` if there's an invalid expression, scope, or unexpected
+ *   token encountered.
+ *
+ * Memory Allocation:
+ * - Utilizes a custom memory allocator (`m_allocator`) for managing AST node
+ *   memory during the creation of `NodeStmt`, `NodeStmtExit`, `NodeStmtLet`,
+ *   and `NodeStmtIf` objects.
+ *
+ * Token Management:
+ * - Employs `peek()` and `consume()` methods for looking ahead at upcoming
+ *   tokens and consuming tokens from the token stream, respectively, aiding
+ *   in the recursive descent parsing process.
+ */
   std::optional<NodeStmt*> parse_stmt(){
-      if (peek().value().type == TokenType::exit && peek(1).has_value()
-          && peek(1).value().type == TokenType::open_paren) {
-          consume();
-          consume();
-          auto stmt_exit = m_allocator.alloc<NodeStmtExit>();
-          if (auto node_expr = parse_expr()) {
-              stmt_exit->expr = node_expr.value();
-          }
-          else {
-              std::cerr << "Invalid expression" << std::endl;
-                (EXIT_FAILURE);
-          }
-          try_consume(TokenType::close_paren, "Expected `)`");
-          try_consume(TokenType::semi, "Expected `;`");
-          auto stmt = m_allocator.alloc<NodeStmt>();
-          stmt->var = stmt_exit;
-          return stmt;
+      if (peek().value().type == TokenType::exit && peek(1).has_value() && peek(1).value().type == TokenType::open_paren) {
+        consume();
+        consume();
+        auto stmt_exit = m_allocator.alloc<NodeStmtExit>();
+        if (auto node_expr = parse_expr()) {
+          stmt_exit->expr = node_expr.value();
+        }
+        else {
+          std::cerr << "Invalid expression" << std::endl;
+            (EXIT_FAILURE);
+        }
+        try_consume(TokenType::close_paren, "Expected `)`");
+        try_consume(TokenType::semi, "Expected `;`");
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_exit;
+        return stmt;
       }
-      else if (
-          peek().has_value() && peek().value().type == TokenType::let && peek(1).has_value()
-          && peek(1).value().type == TokenType::ident && peek(2).has_value()
-          && peek(2).value().type == TokenType::eq) {
+
+      else if ( //check that the one after that is an identifier and then the one after that is an identifier
+        peek().has_value() && peek().value().type == TokenType::let && peek(1).has_value()
+        && peek(1).value().type == TokenType::ident && peek(2).has_value()
+        && peek(2).value().type == TokenType::eq
+              ) {
           consume();
           auto stmt_let = m_allocator.alloc<NodeStmtLet>();
           stmt_let->ident = consume();
           consume();
+          // if the expression is parsed correctly
           if (auto expr = parse_expr()) {
               stmt_let->expr = expr.value();
           }
@@ -281,11 +322,13 @@ public:
               std::cerr << "Invalid expression" << std::endl;
               exit(EXIT_FAILURE);
           }
+          // check if it had a semicol
           try_consume(TokenType::semi, "Expected `;`");
           auto stmt = m_allocator.alloc<NodeStmt>();
           stmt->var = stmt_let;
-          return stmt;
+          return stmt; // return a node statement
       }
+
       else if (peek().has_value() && peek().value().type == TokenType::open_curly) {
           if (auto scope = parse_scope()) {
               auto stmt = m_allocator.alloc<NodeStmt>();
@@ -297,6 +340,7 @@ public:
               exit(EXIT_FAILURE);
           }
       }
+
       else if (auto if_ = try_consume(TokenType::if_)) {
           try_consume(TokenType::open_paren, "Expected `(`");
           auto stmt_if = m_allocator.alloc<NodeStmtIf>();
@@ -319,23 +363,57 @@ public:
           stmt->var = stmt_if;
           return stmt;
       }
+
       else {
           return {};
       }
   }
 
+/**
+ * @brief Parses a series of statements to construct a program node of an Abstract Syntax Tree (AST).
+ * 
+ * This function is an essential part of the AST construction phase in a compiler, enabling the translation 
+ * of source code into a structured representation for further analysis and transformation.
+ * 
+ * @return std::optional<NodeProg> - An optional object encapsulating the NodeProg object representing the parsed program.
+ * If the parsing fails at any point, an empty std::optional object is returned.
+ * 
+ * Detailed Breakdown:
+ * 1. Function Signature: 
+ *    - Returns a std::optional<NodeProg> object encapsulating a NodeProg object or nothing (in case of parsing failure).
+ * 
+ * 2. Local Variables:
+ *    - NodeProg prog; creates an instance of NodeProg to represent the program being parsed.
+ *    
+ * 3. Loop:
+ *    - The while (peek().has_value()) loop iterates as long as the peek() function returns a value, suggesting that peek() 
+ *      is checking the next token or element in the input stream to see if there's more to parse.
+ *   
+ * 4. Statement Parsing:
+ *    - Within the loop, parse_stmt() is called to parse individual statements.
+ *    - If parse_stmt() returns a value (i.e., a successfully parsed statement), it is added to prog.stmts using the push_back method.
+ *      prog.stmts is likely a vector or similar collection within the NodeProg structure, holding all the parsed statements.
+ *   
+ * 5. Error Handling:
+ *    - If parse_stmt() fails to return a value (i.e., fails to parse a statement), an error message "Invalid statement" is output to std::cerr,
+ *      and the program exits with exit(EXIT_FAILURE), indicating a failure.
+ * 
+ * 6. Return Value:
+ *    - Once all statements have been parsed (or an error has occurred), prog is returned wrapped in a std::optional, indicating the parsed program.
+ */
   std::optional<NodeProg> parse_prog(){
-      NodeProg prog;
-      while (peek().has_value()) {
-          if (auto stmt = parse_stmt()) {
-              prog.stmts.push_back(stmt.value());
-          }
-          else {
-              std::cerr << "Invalid statement" << std::endl;
-              exit(EXIT_FAILURE);
-          }
-      }
-      return prog;
+    NodeProg prog;
+    // keep going until we can parse anything else
+    while (peek().has_value()) {
+        if (auto stmt = parse_stmt()) {
+          prog.stmts.push_back(stmt.value());
+        }
+        else {
+          std::cerr << "Invalid statement" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+    return prog;
   }
 
 private:

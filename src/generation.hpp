@@ -43,7 +43,7 @@
 class Generator {
 public:
     inline explicit Generator(NodeProg prog)
-        : m_prog(std::move(prog)) // root of the tree
+        : m_prog(std::move(prog)) // take the program out put from the parser (AST)
     {
     }
 

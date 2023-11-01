@@ -32,7 +32,7 @@ enum class TokenType{
   open_paren,
   close_paren,
   ident,
-  let,
+  let, // variable declaration
   eq,
   plus,
   star,
