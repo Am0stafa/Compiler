@@ -47,6 +47,7 @@ public:
     {
     }
 
+    // A generate for each AST node, just as we parse each AST node we will generate each AST node as we traverse the tree
     void gen_term(const NodeTerm* term){
         struct TermVisitor {
             Generator& gen;

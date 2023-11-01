@@ -13,7 +13,7 @@
 // ### 2. Parser Class:
 //    - The `Parser` class is responsible for parsing a sequence of tokens into an AST nodes. It does this through a set of parsing functions like `parse_term`, `parse_expr`, `parse_stmt`, and `parse_prog`, each of which parses different parts of the syntax.
 //    - Recursive Descent Parsing: The parsing functions follow a recursive descent parsing strategy, where `parse_expr` and `parse_stmt` call themselves and each other recursively to parse nested expressions and statements.
-//    - Error Handling: When it encounters an unexpected token, it prints an error message to standard error and exits the program.
+//    - Error Handling: When it encounters an unexpected token, it prints an error message to standard error and exits.
 //    - Memory Allocation: The parser uses an `ArenaAllocator` to allocate memory for AST nodes. This is a common practice in compilers to manage memory efficiently and ensure that all allocated memory is freed when the compiler is done.
 
 // ### 3. Memory Allocation:
@@ -23,9 +23,7 @@
 //    - Token handling methods like `peek`, `consume`, and `try_consume` are used to inspect and consume tokens from the token stream as the parser processes the input.
 
 // ### 5. Parsing Strategy:
-//    - Operator Precedence Parsing: The `parse_expr` function seems to implement a form of operator precedence parsing to handle binary expressions with different levels of precedence.
-
-
+//    - Operator Precedence Parsing: The `parse_expr` function implement a form of operator precedence parsing to handle binary expressions with different levels of precedence.
 
 
 #pragma once
