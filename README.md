@@ -48,7 +48,3 @@ grammar of the Hydro language defined using Backus-Naur Form (BNF).
         - An integer literal (`int_lit`).
         - An identifier (`ident`).
         - An expression enclosed in parentheses, allowing for grouped expressions.
-
----
-
-Feel free to copy the above text into a README file for your project. The Markdown syntax is used to format the text, making it readable and well-structured when viewed on platforms like GitHub.
