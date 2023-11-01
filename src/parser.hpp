@@ -25,52 +25,7 @@
 // ### 5. Parsing Strategy:
 //    - Operator Precedence Parsing: The `parse_expr` function seems to implement a form of operator precedence parsing to handle binary expressions with different levels of precedence.
 
-//How the tokens will look like
-// 1. For the line `let y = (10 - 2 * 3) / 2;`:
-//     - Token { type: TokenType::let }
-//     - Token { type: TokenType::ident, value: "y" }
-//     - Token { type: TokenType::eq }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::int_lit, value: "10" }
-//     - Token { type: TokenType::minus }
-//     - Token { type: TokenType::int_lit, value: "2" }
-//     - Token { type: TokenType::star }
-//     - Token { type: TokenType::int_lit, value: "3" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::fslash }
-//     - Token { type: TokenType::int_lit, value: "2" }
-//     - Token { type: TokenType::semi }
 
-// 2. For the line `let x = 1;`:
-//     - Token { type: TokenType::let }
-//     - Token { type: TokenType::ident, value: "x" }
-//     - Token { type: TokenType::eq }
-//     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::semi }
-
-// 3. For the lines `if (x - 1) { exit(69); }`:
-//     - Token { type: TokenType::if_ }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::ident, value: "x" }
-//     - Token { type: TokenType::minus }
-//     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::open_curly }
-//     - Token { type: TokenType::exit }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::int_lit, value: "69" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::semi }
-//     - Token { type: TokenType::close_curly }
-
-// 4. For the line `exit(1);`:
-//     - Token { type: TokenType::exit }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::semi }
-
-// These tokens represent the syntactic elements found in the source code, and are categorized based on their types, such as keywords, identifiers, operators, literals, and punctuation symbols. They are ready to be fed into the next stage of the compilation process, which is parsing.
 
 
 #pragma once
