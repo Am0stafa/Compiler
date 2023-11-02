@@ -1,4 +1,4 @@
-# Hydro Language Hydrogen Lang (C++ Compiler)
+# Hydro Language C++ Compiler)
 
 ## Grammar
 grammar of the Hydro language defined using Backus-Naur Form (BNF).
