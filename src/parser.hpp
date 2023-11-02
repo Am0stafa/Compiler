@@ -52,8 +52,8 @@ struct NodeTermParen {
 
 // Node representing a binary addition expression
 struct NodeBinExprAdd {
-    NodeExpr* lhs;
-    NodeExpr* rhs;
+    NodeExpr* lhs; // left
+    NodeExpr* rhs; // right
 };
 
 // Node representing a binary multiplication expression
