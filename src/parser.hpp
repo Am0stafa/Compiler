@@ -165,6 +165,7 @@ public:
       }
   }
  
+  //
   std::optional<NodeExpr*> parse_expr(int min_prec = 0){
     std::optional<NodeTerm*> term_lhs = parse_term();
     if (!term_lhs.has_value()) {
@@ -174,62 +175,62 @@ public:
     expr_lhs->var = term_lhs.value();
 
     while (true) {
-      std::optional<Token> curr_tok = peek();
-      std::optional<int> prec;
+    std::optional<Token> curr_tok = peek();
+    std::optional<int> prec;
 
-      if (curr_tok.has_value()) {
-          prec = bin_prec(curr_tok->type);
-          if (!prec.has_value() || prec < min_prec) {
-            break;
-          }
-      }
-      else {
+    if (curr_tok.has_value()) {
+      prec = bin_prec(curr_tok->type);
+      if (!prec.has_value() || prec < min_prec) {
         break;
       }
+    }
+    else {
+      break;
+    }
 
-      Token op = consume();
-      int next_min_prec = prec.value() + 1;
-      auto expr_rhs = parse_expr(next_min_prec);
+    Token op = consume();
+    int next_min_prec = prec.value() + 1;
+    auto expr_rhs = parse_expr(next_min_prec);
 
-      if (!expr_rhs.has_value()) {
-        std::cerr << "\033[31mUnable to parse expression\033[0m" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+    if (!expr_rhs.has_value()) {
+      std::cerr << "\033[31mUnable to parse expression\033[0m" << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
-      auto expr = m_allocator.alloc<NodeBinExpr>();
-      auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
-      if (op.type == TokenType::plus) {
-        auto add = m_allocator.alloc<NodeBinExprAdd>();
-        expr_lhs2->var = expr_lhs->var;
-        add->lhs = expr_lhs2;
-        add->rhs = expr_rhs.value();
-        expr->var = add;
-      }
-      else if (op.type == TokenType::star) {
-        auto multi = m_allocator.alloc<NodeBinExprMulti>();
-        expr_lhs2->var = expr_lhs->var;
-        multi->lhs = expr_lhs2;
-        multi->rhs = expr_rhs.value();
-        expr->var = multi;
-      }
-      else if (op.type == TokenType::minus) {
-        auto sub = m_allocator.alloc<NodeBinExprSub>();
-        expr_lhs2->var = expr_lhs->var;
-        sub->lhs = expr_lhs2;
-        sub->rhs = expr_rhs.value();
-        expr->var = sub;
-      }
-      else if (op.type == TokenType::fslash) {
-        auto div = m_allocator.alloc<NodeBinExprDiv>();
-        expr_lhs2->var = expr_lhs->var;
-        div->lhs = expr_lhs2;
-        div->rhs = expr_rhs.value();
-        expr->var = div;
-      }
-      else {
-        assert(false); // Unreachable;
-      }
-      expr_lhs->var = expr;
+    auto expr = m_allocator.alloc<NodeBinExpr>();
+    auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
+    if (op.type == TokenType::plus) {
+      auto add = m_allocator.alloc<NodeBinExprAdd>();
+      expr_lhs2->var = expr_lhs->var;
+      add->lhs = expr_lhs2;
+      add->rhs = expr_rhs.value();
+      expr->var = add;
+    }
+    else if (op.type == TokenType::star) {
+      auto multi = m_allocator.alloc<NodeBinExprMulti>();
+      expr_lhs2->var = expr_lhs->var;
+      multi->lhs = expr_lhs2;
+      multi->rhs = expr_rhs.value();
+      expr->var = multi;
+    }
+    else if (op.type == TokenType::minus) {
+      auto sub = m_allocator.alloc<NodeBinExprSub>();
+      expr_lhs2->var = expr_lhs->var;
+      sub->lhs = expr_lhs2;
+      sub->rhs = expr_rhs.value();
+      expr->var = sub;
+    }
+    else if (op.type == TokenType::fslash) {
+      auto div = m_allocator.alloc<NodeBinExprDiv>();
+      expr_lhs2->var = expr_lhs->var;
+      div->lhs = expr_lhs2;
+      div->rhs = expr_rhs.value();
+      expr->var = div;
+    }
+    else {
+    assert(false); // Unreachable;
+    }
+    expr_lhs->var = expr;
     }
     return expr_lhs;
   }
