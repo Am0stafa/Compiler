@@ -48,3 +48,8 @@ grammar of the Hydro language defined using Backus-Naur Form (BNF).
         - An integer literal (`int_lit`).
         - An identifier (`ident`).
         - An expression enclosed in parentheses, allowing for grouped expressions.
+     
+
+## Resources
+  - For complex math operations by precedence:
+     - link https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
