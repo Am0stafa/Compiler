@@ -56,7 +56,7 @@ struct NodeBinExprAdd {
     NodeExpr* rhs; // right
 };
 
-// Node representing a binary multiplication expression
+// Node representing a binary MULTIPLICATION expression
 struct NodeBinExprMulti {
     NodeExpr* lhs;
     NodeExpr* rhs;
@@ -165,22 +165,31 @@ public:
       }
   }
  
-  //
+  // Parses an expression with optional binary operations, adhering to a specified minimum precedence.
+  // The function will parse a left-hand side term and then look ahead to determine if a binary operator follows.
+  // If a binary operator is found and its precedence is greater or equal to `min_prec`, the function will recursively parse the right-hand side expression with a higher precedence. This process ensures that the 
+  // expression is parsed according to operator precedence rules. If a binary operator is not followed by a valid
+  // expression, the function reports an error and terminates. The function returns an optional pointer to a 
+  // `NodeExpr` which may be an expression or a binary expression depending on the input. If parsing fails 
+  // at any point, an empty optional is returned.
+  //create the full trie to make the code generation for it
   std::optional<NodeExpr*> parse_expr(int min_prec = 0){
     std::optional<NodeTerm*> term_lhs = parse_term();
     if (!term_lhs.has_value()) {
       return {}; 
     }
+    // before the loop, we have a term
     auto expr_lhs = m_allocator.alloc<NodeExpr>();
     expr_lhs->var = term_lhs.value();
 
+    // we need to see if as an expresion has a binary operator can be only a single term
     while (true) {
-    std::optional<Token> curr_tok = peek();
-    std::optional<int> prec;
+    std::optional<Token> curr_tok = peek(); // optional token
+    std::optional<int> prec; // optional precedence
 
-    if (curr_tok.has_value()) {
+    if (curr_tok.has_value()) { // if it doesn't have a value then we break out of the loop
       prec = bin_prec(curr_tok->type);
-      if (!prec.has_value() || prec < min_prec) {
+      if (!prec.has_value() || prec < min_prec) { // if it doesn't have a value or the precedence is less than the min prec then we break out of the loop
         break;
       }
     }
@@ -188,8 +197,8 @@ public:
       break;
     }
 
-    Token op = consume();
-    int next_min_prec = prec.value() + 1;
+    Token op = consume(); // consume the next token
+    int next_min_prec = prec.value() + 1; // the next precedence
     auto expr_rhs = parse_expr(next_min_prec);
 
     if (!expr_rhs.has_value()) {
@@ -199,7 +208,16 @@ public:
 
     auto expr = m_allocator.alloc<NodeBinExpr>();
     auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
-    if (op.type == TokenType::plus) {
+
+    // know the expression type of the next token. The lhs and rhs put them together
+    // Specifically, it checks whether the current operator token (`op`) is of type `TokenType::plus`,
+    // indicating an addition operation between two expressions. If the token matches, it creates a new `NodeBinExprAdd` node,
+    // which represents a binary addition expression in the AST. This new node will have its `lhs` (left-hand side) and `rhs`
+    // (right-hand side) properties set to the previously parsed left expression (`expr_lhs2`) and the right expression (`expr_rhs`) respectively.
+    // The left expression (`expr_lhs2`) is also updated to inherit the variable from the original left expression (`expr_lhs`).
+    // Finally, the variable of the encompassing expression (`expr`) is set to the newly created `NodeBinExprAdd` node,
+    // effectively building the AST subtree for this binary expression and preparing the parser to continue parsing any further expressions.
+    if (op.type == TokenType::plus) { // know the type of the next token
       auto add = m_allocator.alloc<NodeBinExprAdd>();
       expr_lhs2->var = expr_lhs->var;
       add->lhs = expr_lhs2;
@@ -228,10 +246,14 @@ public:
       expr->var = div;
     }
     else {
-    assert(false); // Unreachable;
+      assert(false); // Unreachable;
     }
+    // reset the left hand side to the expression
     expr_lhs->var = expr;
+
     }
+    
+    // once we are done with the loop, we return the expression which is in the left hand side
     return expr_lhs;
   }
 

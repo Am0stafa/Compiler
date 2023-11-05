@@ -82,7 +82,7 @@ enum class TokenType{
   let, // variable declaration
   eq,
   plus,
-  star,
+  star, // multiplication
   minus,
   fslash,
   open_curly,
@@ -90,8 +90,8 @@ enum class TokenType{
   if_
 };
 
-std::optional<int> bin_prec(TokenType type)
-{
+// check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
+std::optional<int> bin_prec(TokenType type){
   switch (type) {
   case TokenType::minus:
   case TokenType::plus:
@@ -100,7 +100,7 @@ std::optional<int> bin_prec(TokenType type)
   case TokenType::star:
     return 1;
   default:
-    return {};
+    return {}; // return null (not a binary operator)
   }
 }
 
