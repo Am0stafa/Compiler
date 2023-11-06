@@ -84,10 +84,11 @@ enum class TokenType{
   plus,
   star, // multiplication
   minus,
-  fslash,
+  fslash, // division forward slash
+  // for scoping
   open_curly,
   close_curly,
-  if_
+  if_ // as if is a keyword in C++
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator

@@ -258,15 +258,18 @@ public:
   }
 
   std::optional<NodeScope*> parse_scope(){
-      if (!try_consume(TokenType::open_curly).has_value()) {
-        return {};
-      }
-      auto scope = m_allocator.alloc<NodeScope>();
-      while (auto stmt = parse_stmt()) {
-        scope->stmts.push_back(stmt.value());
-      }
-      try_consume(TokenType::close_curly, "Expected `}`");
-      return scope;
+    if (!try_consume(TokenType::open_curly).has_value()) {
+      return {};
+    }
+
+    auto scope = m_allocator.alloc<NodeScope>();
+
+    while (auto stmt = parse_stmt()) {
+      scope->stmts.push_back(stmt.value());
+    }
+    try_consume(TokenType::close_curly, "Expected `}`");
+
+    return scope;
   }
 
 /**
@@ -309,81 +312,81 @@ public:
  *   in the recursive descent parsing process.
  */
   std::optional<NodeStmt*> parse_stmt(){
-      if (peek().value().type == TokenType::exit && peek(1).has_value() && peek(1).value().type == TokenType::open_paren) {
-        consume();
-        consume();
-        auto stmt_exit = m_allocator.alloc<NodeStmtExit>();
-        if (auto node_expr = parse_expr()) {
-          stmt_exit->expr = node_expr.value();
-        }
-        else {
-          std::cerr << "Invalid expression" << std::endl;
-            (EXIT_FAILURE);
-        }
-        try_consume(TokenType::close_paren, "Expected `)`");
-        try_consume(TokenType::semi, "Expected `;`");
-        auto stmt = m_allocator.alloc<NodeStmt>();
-        stmt->var = stmt_exit;
-        return stmt;
+    if (peek().value().type == TokenType::exit && peek(1).has_value() && peek(1).value().type == TokenType::open_paren) {
+      consume();
+      consume();
+      auto stmt_exit = m_allocator.alloc<NodeStmtExit>();
+      if (auto node_expr = parse_expr()) {
+        stmt_exit->expr = node_expr.value();
       }
+      else {
+        std::cerr << "Invalid expression" << std::endl;
+          (EXIT_FAILURE);
+      }
+      try_consume(TokenType::close_paren, "Expected `)`");
+      try_consume(TokenType::semi, "Expected `;`");
+      auto stmt = m_allocator.alloc<NodeStmt>();
+      stmt->var = stmt_exit;
+      return stmt;
+    }
 
       else if ( //check that the one after that is an identifier and then the one after that is an identifier
         peek().has_value() && peek().value().type == TokenType::let && peek(1).has_value()
         && peek(1).value().type == TokenType::ident && peek(2).has_value()
         && peek(2).value().type == TokenType::eq
               ) {
-          consume();
-          auto stmt_let = m_allocator.alloc<NodeStmtLet>();
-          stmt_let->ident = consume();
-          consume();
-          // if the expression is parsed correctly
-          if (auto expr = parse_expr()) {
-              stmt_let->expr = expr.value();
-          }
-          else {
-              std::cerr << "Invalid expression" << std::endl;
-              exit(EXIT_FAILURE);
-          }
-          // check if it had a semicol
-          try_consume(TokenType::semi, "Expected `;`");
-          auto stmt = m_allocator.alloc<NodeStmt>();
-          stmt->var = stmt_let;
-          return stmt; // return a node statement
+        consume();
+        auto stmt_let = m_allocator.alloc<NodeStmtLet>();
+        stmt_let->ident = consume();
+        consume();
+        // if the expression is parsed correctly
+        if (auto expr = parse_expr()) {
+            stmt_let->expr = expr.value();
+        }
+        else {
+            std::cerr << "Invalid expression" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        // check if it had a semicol
+        try_consume(TokenType::semi, "Expected `;`");
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_let;
+        return stmt; // return a node statement
       }
 
       else if (peek().has_value() && peek().value().type == TokenType::open_curly) {
-          if (auto scope = parse_scope()) {
-              auto stmt = m_allocator.alloc<NodeStmt>();
-              stmt->var = scope.value();
-              return stmt;
-          }
-          else {
-              std::cerr << "Invalid scope" << std::endl;
-              exit(EXIT_FAILURE);
-          }
+        if (auto scope = parse_scope()) {
+          auto stmt = m_allocator.alloc<NodeStmt>();
+          stmt->var = scope.value();
+          return stmt;
+        }
+        else {
+          std::cerr << "Invalid scope" << std::endl;
+          exit(EXIT_FAILURE);
+        }
       }
 
       else if (auto if_ = try_consume(TokenType::if_)) {
-          try_consume(TokenType::open_paren, "Expected `(`");
-          auto stmt_if = m_allocator.alloc<NodeStmtIf>();
-          if (auto expr = parse_expr()) {
-              stmt_if->expr = expr.value();
-          }
-          else {
-              std::cerr << "Invalid expression" << std::endl;
-              exit(EXIT_FAILURE);
-          }
-          try_consume(TokenType::close_paren, "Expected `)`");
-          if (auto scope = parse_scope()) {
-              stmt_if->scope = scope.value();
-          }
-          else {
-              std::cerr << "Invalid scope" << std::endl;
-              exit(EXIT_FAILURE);
-          }
-          auto stmt = m_allocator.alloc<NodeStmt>();
-          stmt->var = stmt_if;
-          return stmt;
+        try_consume(TokenType::open_paren, "Expected `(`");
+        auto stmt_if = m_allocator.alloc<NodeStmtIf>();
+        if (auto expr = parse_expr()) {
+          stmt_if->expr = expr.value();
+        }
+        else {
+          std::cerr << "Invalid expression" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        try_consume(TokenType::close_paren, "Expected `)`");
+        if (auto scope = parse_scope()) {
+          stmt_if->scope = scope.value();
+        }
+        else {
+          std::cerr << "Invalid scope {}" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_if;
+        return stmt;
       }
 
       else {
