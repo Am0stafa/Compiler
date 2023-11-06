@@ -47,8 +47,11 @@ grammar of the Hydro language defined using Backus-Naur Form (BNF).
     - A term can be:
         - An integer literal (`int_lit`).
         - An identifier (`ident`).
-        - An expression enclosed in parentheses, allowing for grouped expressions.
+        - An expression enclosed in parentheses, allowing for grouped expressions. \\
+
+It supports variable shadowing
      
+
 
 ## Resources
   - For complex math operations by precedence:
