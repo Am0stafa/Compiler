@@ -193,7 +193,7 @@ public:
         break;
       }
     }
-    else {
+    else { // no value then we break out of the loop
       break;
     }
 
@@ -207,7 +207,7 @@ public:
     }
 
     auto expr = m_allocator.alloc<NodeBinExpr>();
-    auto expr_lhs2 = m_allocator.alloc<NodeExpr>();
+    auto expr_lhs2 = m_allocator.alloc<NodeExpr>(); // to avoid the dangling pointer
 
     // know the expression type of the next token. The lhs and rhs put them together
     // Specifically, it checks whether the current operator token (`op`) is of type `TokenType::plus`,
@@ -219,7 +219,7 @@ public:
     // effectively building the AST subtree for this binary expression and preparing the parser to continue parsing any further expressions.
     if (op.type == TokenType::plus) { // know the type of the next token
       auto add = m_allocator.alloc<NodeBinExprAdd>();
-      expr_lhs2->var = expr_lhs->var;
+      expr_lhs2->var = expr_lhs->var; // create a new expression here and take the var out of it
       add->lhs = expr_lhs2;
       add->rhs = expr_rhs.value();
       expr->var = add;
