@@ -1,5 +1,9 @@
 # Hydro Language C++ Compiler
 
+## Introductory 
+It basically transforms code written in .hy file into an executable.
+What it does is take the code in .hy file 1. parse it using the `tokenizer.hpp` file then 2. Create an abstract syntax tree (AST) using the `parser.hpp` then 3. take that AST and transform it into an assembly program which is then assembled and linked to create an executable for any operating system
+
 ## Grammar
 grammar of the Hydro language defined using the Backus-Naur Form (BNF).
 
