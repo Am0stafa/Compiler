@@ -17,8 +17,6 @@
 //    - The `peek` and `consume` methods are utility functions used in the process of analyzing the source code. `peek` looks ahead in the source code without advancing the position, while `consume` advances the position and returns the character at the current position, it is like i++.
 //    - Private members `m_src` and `m_index` hold the source code string and the current position within that string respectively.
 
-// In summary, this file encapsulates the logic for lexical analysis within a compiler project, defining the structure of tokens, the process of tokenization, and some utility functions for handling binary operator precedence and character examination in the source string.
-
 //How the tokens will look like
 // 1. For the line `let y = (10 - 2 * 3) / 2;`:
 //     - Token { type: TokenType::let }
@@ -40,28 +38,6 @@
 //     - Token { type: TokenType::ident, value: "x" }
 //     - Token { type: TokenType::eq }
 //     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::semi }
-
-// 3. For the lines `if (x - 1) { exit(69); }`:
-//     - Token { type: TokenType::if_ }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::ident, value: "x" }
-//     - Token { type: TokenType::minus }
-//     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::open_curly }
-//     - Token { type: TokenType::exit }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::int_lit, value: "69" }
-//     - Token { type: TokenType::close_paren }
-//     - Token { type: TokenType::semi }
-//     - Token { type: TokenType::close_curly }
-
-// 4. For the line `exit(1);`:
-//     - Token { type: TokenType::exit }
-//     - Token { type: TokenType::open_paren }
-//     - Token { type: TokenType::int_lit, value: "1" }
-//     - Token { type: TokenType::close_paren }
 //     - Token { type: TokenType::semi }
 
 // These tokens represent the syntactic elements found in the source code, and are categorized based on their types, such as keywords, identifiers, operators, literals, and punctuation symbols. They are ready to be fed into the next stage of the compilation process, which is parsing.
@@ -126,6 +102,31 @@ public:
     // loop until when we peek there is no more character
     while (peek().has_value()) {
       // inside the loop consume the tokens
+
+        // Handle Single-Line Comments
+      if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '/') {
+          consume(); // Consume first '/'
+          consume(); // Consume second '/'
+          while (peek().has_value() && peek().value() != '\n') {
+              consume(); // Consume characters until end of line
+          }
+          continue; // Skip to next iteration after comment
+      }
+
+      // Handle Block Comments
+      if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '*') {
+          consume(); // Consume '/'
+          consume(); // Consume '*'
+          while (peek().has_value() && !(peek().value() == '*' && peek(1).value() == '/')) {
+              consume(); // Consume characters inside comment block
+          }
+          if (peek().has_value()) {
+              consume(); // Consume closing '*'
+              consume(); // Consume closing '/'
+          }
+          continue; // Skip to next iteration after comment
+      }
+      
       if (std::isalpha(peek().value())) {
           buf.push_back(consume());
           // put all letters in buffer

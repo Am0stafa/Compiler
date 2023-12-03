@@ -52,7 +52,14 @@ grammar of the Hydro language defined using the Backus-Naur Form (BNF).
         - An integer literal (`int_lit`).
         - An identifier (`ident`).
         - An expression enclosed in parentheses, allowing for grouped expressions. \\
+7. **Single-Line Comments**:
+   - Start with `//` and extend to the end of the line.
+   - Syntax: `// [comment text]`
 
+8. **Block Comments**:
+   - Enclosed between `/*` and `*/`.
+   - Can span multiple lines.
+   - Syntax: `/* [comment text] */`
 It supports variable shadowing
      
 
