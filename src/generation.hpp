@@ -50,12 +50,20 @@ public:
   // A generate for each AST node, just as we parse each AST node we will generate each AST node as we traverse the tree
   void gen_term(const NodeTerm* term){
   struct TermVisitor {
-    Generator& gen;
-    
-    void operator()(const NodeTermIntLit* term_int_lit) const{
-      gen.m_output << "    mov rax, " << term_int_lit->int_lit.value.value() << "\n";
-      gen.push("rax");
-    }
+        Generator& gen;
+
+        void operator()(const NodeTermIntLit* term_int_lit) const {
+            gen.m_output << "    mov rax, " << term_int_lit->int_lit.value.value() << "\n";
+            gen.push("rax");
+        }
+
+        // Add handling for boolean literals
+        void operator()(const NodeBoolLit* bool_lit) const {
+            // Convert the boolean value to an integer (0 for false, 1 for true)
+            int boolValue = bool_lit->value ? 1 : 0;
+            gen.m_output << "    mov rax, " << boolValue << "\n";
+            gen.push("rax");
+        }
 
     // If we need to use a variable, extract the value of the variable and put it at the top of the stack
     void operator()(const NodeTermIdent* term_ident) const{

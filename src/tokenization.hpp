@@ -64,7 +64,9 @@ enum class TokenType{
   // for scoping
   open_curly,
   close_curly,
-  if_ // as if is a keyword in C++
+  if_, // as if is a keyword in C++
+  true_,
+  false_,
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -119,21 +121,27 @@ public:
           consume(); // Consume '*'
           while (peek().has_value() && !(peek().value() == '*' && peek(1).value() == '/')) {
               consume(); // Consume characters inside comment block
-          }
+          } 
           if (peek().has_value()) {
               consume(); // Consume closing '*'
               consume(); // Consume closing '/'
           }
           continue; // Skip to next iteration after comment
       }
-      
+
       if (std::isalpha(peek().value())) {
           buf.push_back(consume());
           // put all letters in buffer
           while (peek().has_value() && std::isalnum(peek().value())) {
             buf.push_back(consume());
           }
-          if (buf == "exit") {
+          if (buf == "true") {
+            tokens.push_back({ .type = TokenType::true_ });
+            buf.clear();
+          } else if (buf == "false") {
+            tokens.push_back({ .type = TokenType::false_ });
+            buf.clear();
+          }else if (buf == "exit") {
             tokens.push_back({ .type = TokenType::exit });
             buf.clear();
           }

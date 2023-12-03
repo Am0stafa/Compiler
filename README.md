@@ -4,26 +4,39 @@
 It basically transforms code written in .hy file into an executable.
 What it does is take the code in .hy file 1. parse it using the `tokenizer.hpp` file then 2. Create an abstract syntax tree (AST) using the `parser.hpp` then 3. take that AST and transform it into an assembly program which is then assembled and linked to create an executable for any operating system
 
+### Basic Elements
+
+- **Keywords**: `exit`, `let`, `if`, `true`, `false`
+- **Identifiers**: Sequence of alphanumeric characters, not starting with a digit and not matching any keywords
+- **Integer Literals**: Sequence of digits representing an integer value
+
 ## Grammar
 grammar of the Hydro language defined using the Backus-Naur Form (BNF).
 
 ```plaintext
 [Prog] -> [Stmt]*
-[Stmt] ->   exit([Expr]);
-          | let ident = [Expr];
-          | if ([Expr])[Scope]
+
+[Stmt] -> exit([Expr]);
+       | let ident = [Expr];
+       | if ([Expr])[Scope]
+
 [Scope] -> { [Stmt]* }
-[Expr] ->   [Term]
-          | [BinExpr]
-[BinExpr] ->   [Expr] * [Expr] { prec = 1 }
-            | [Expr] / [Expr] { prec = 1 }
-            | [Expr] + [Expr] { prec = 0 }
-            | [Expr] - [Expr] { prec = 0 }
-[Term] ->   int_lit
-          | ident
-          | ([Expr])
+
+[Expr] -> [Term]
+       | [BinExpr]
+
+[BinExpr] -> [Expr] * [Expr] { prec = 1 }
+         | [Expr] / [Expr] { prec = 1 }
+         | [Expr] + [Expr] { prec = 0 }
+         | [Expr] - [Expr] { prec = 0 }
+
+[Term] -> int_lit
+       | ident
+       | ([Expr])
+       | true
+       | false
 ```
-<img width="479" alt="Screenshot 2023-10-27 at 1 20 59 AM" src="https://github.com/Am0stafa/compiler/assets/62848968/5376e7ff-d539-4e0d-ba15-992cca41d394">
+<!-- <img width="479" alt="Screenshot 2023-10-27 at 1 20 59 AM" src="https://github.com/Am0stafa/compiler/assets/62848968/5376e7ff-d539-4e0d-ba15-992cca41d394"> -->
 
 ## Grammar Explanation
 

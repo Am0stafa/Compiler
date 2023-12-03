@@ -81,7 +81,7 @@ struct NodeBinExpr {
 
 // Node representing a terminal symbol in an expression
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*> var;
+    std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*, NodeBoolLit*> var;
 };
 
 // Node representing an expression
@@ -124,6 +124,11 @@ struct NodeProg {
     std::vector<NodeStmt*> stmts;
 };
 
+// Node representing a boolean literal true or false constants
+struct NodeBoolLit {
+    bool value;
+};
+
 class Parser {
 public:
   inline explicit Parser(std::vector<Token> tokens)
@@ -133,7 +138,21 @@ public:
   }
 
   std::optional<NodeTerm*> parse_term(){
-      if (auto int_lit = try_consume(TokenType::int_lit)) {
+      if (auto token = try_consume(TokenType::true_)) {
+        auto node = m_allocator.alloc<NodeBoolLit>();
+        node->value = true;
+        auto term = m_allocator.alloc<NodeTerm>();
+        term->var = node;
+        return term;
+      }
+      else if (auto token = try_consume(TokenType::false_)) {
+        auto node = m_allocator.alloc<NodeBoolLit>();
+        node->value = false;
+        auto term = m_allocator.alloc<NodeTerm>();
+        term->var = node;
+        return term;
+      }
+      else if (auto int_lit = try_consume(TokenType::int_lit)) {
         auto term_int_lit = m_allocator.alloc<NodeTermIntLit>();
         term_int_lit->int_lit = int_lit.value();
         auto term = m_allocator.alloc<NodeTerm>();
