@@ -80,10 +80,23 @@ struct NodeBinExprEq {
     NodeExpr* rhs;
 };
 
+// Node representing a binary expression &&
+struct NodeBinExprAnd {
+    NodeExpr* lhs;
+    NodeExpr* rhs;
+};
+
+// Node representing a binary expression ||
+struct NodeBinExprOr {
+    NodeExpr* lhs;
+    NodeExpr* rhs;
+};
+
 // Node representing any binary expression
 struct NodeBinExpr {
-    std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*> var;
+    std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*, NodeBinExprAnd*, NodeBinExprOr*> var;
 };
+
 // Node representing a terminal symbol in an expression
 struct NodeTerm {
     std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*, NodeBoolLit*> var;
@@ -254,6 +267,19 @@ public:
         eq->lhs = expr_lhs2;
         eq->rhs = expr_rhs.value();
         expr->var = eq;
+    }
+    else if (op.type == TokenType::and_and) {
+        auto andExpr = m_allocator.alloc<NodeBinExprAnd>();
+        expr_lhs2->var = expr_lhs->var;
+        andExpr->lhs = expr_lhs2;
+        andExpr->rhs = expr_rhs.value();
+        expr->var = andExpr;
+    } else if (op.type == TokenType::or_or) {
+        auto orExpr = m_allocator.alloc<NodeBinExprOr>();
+        expr_lhs2->var = expr_lhs->var;
+        orExpr->lhs = expr_lhs2;
+        orExpr->rhs = expr_rhs.value();
+        expr->var = orExpr;
     }
     else if (op.type == TokenType::star) {
       auto multi = m_allocator.alloc<NodeBinExprMulti>();

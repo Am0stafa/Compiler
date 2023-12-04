@@ -68,6 +68,8 @@ enum class TokenType{
   true_,
   false_,
   eq_eq, // ==
+  and_and,  // for '&&' operator
+  or_or,    // for '||' operator
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -115,7 +117,6 @@ public:
           }
           continue; // Skip to next iteration after comment
       }
-
       // Handle Block Comments
       if (peek().value() == '/' && peek(1).has_value() && peek(1).value() == '*') {
           consume(); // Consume '/'
@@ -129,12 +130,29 @@ public:
           }
           continue; // Skip to next iteration after comment
       }
+
       // Check for '==' operator
       if (peek().value() == '=' && peek(1).value() == '=') {
           consume(); // Consume first '='
           consume(); // Consume second '='
           tokens.push_back({ .type = TokenType::eq_eq });
           continue;
+      }
+
+      // Check for '&&' operator
+      if (peek().value() == '&' && peek(1).value() == '&') {
+        consume(); // Consume first '&'
+        consume(); // Consume second '&'
+        tokens.push_back({ .type = TokenType::and_and });
+        continue;
+      }
+
+      // Check for '||' operator
+      if (peek().value() == '|' && peek(1).value() == '|') {
+        consume(); // Consume first '|'
+        consume(); // Consume second '|'
+        tokens.push_back({ .type = TokenType::or_or });
+        continue;
       }
 
       if (std::isalpha(peek().value())) {

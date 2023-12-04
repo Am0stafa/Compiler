@@ -138,6 +138,64 @@ public:
         gen.m_output << "    movzx rax, al\n";
         gen.push("rax");
       }
+      void operator()(const NodeBinExprAnd* andExpr) const {
+        std::string labelFalse = gen.create_label();
+        std::string labelEnd = gen.create_label();
+
+        // Evaluate the left-hand side expression
+        gen.gen_expr(andExpr->lhs);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";  // Compare with false
+        gen.m_output << "    je " << labelFalse << "\n";  // Jump if false
+
+        // Evaluate the right-hand side expression
+        gen.gen_expr(andExpr->rhs);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";  // Compare with false
+        gen.m_output << "    je " << labelFalse << "\n";  // Jump if false
+
+        // Both are true
+        gen.m_output << "    mov rax, 1\n";  // Set result to true
+        gen.m_output << "    jmp " << labelEnd << "\n";
+
+        // False label
+        gen.m_output << labelFalse << ":\n";
+        gen.m_output << "    mov rax, 0\n";  // Set result to false
+
+        // End label
+        gen.m_output << labelEnd << ":\n";
+        gen.push("rax");
+      }
+      void operator()(const NodeBinExprOr* orExpr) const {
+        std::string labelTrue = gen.create_label();
+        std::string labelEnd = gen.create_label();
+
+        // Evaluate the left-hand side expression
+        gen.gen_expr(orExpr->lhs);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";  // Compare with false
+        gen.m_output << "    jne " << labelTrue << "\n";  // Jump if true
+
+        // Evaluate the right-hand side expression
+        gen.gen_expr(orExpr->rhs);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";  // Compare with false
+        gen.m_output << "    jne " << labelTrue << "\n";  // Jump if true
+
+        // Both are false
+        gen.m_output << "    mov rax, 0\n";  // Set result to false
+        gen.m_output << "    jmp " << labelEnd << "\n";
+
+        // True label
+        gen.m_output << labelTrue << ":\n";
+        gen.m_output << "    mov rax, 1\n";  // Set result to true
+
+        // End label
+        gen.m_output << labelEnd << ":\n";
+        gen.push("rax");
+      }
+
+
   };
 
       BinExprVisitor visitor { .gen = *this };
