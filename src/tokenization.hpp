@@ -67,6 +67,7 @@ enum class TokenType{
   if_, // as if is a keyword in C++
   true_,
   false_,
+  eq_eq, // ==
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -127,6 +128,13 @@ public:
               consume(); // Consume closing '/'
           }
           continue; // Skip to next iteration after comment
+      }
+      // Check for '==' operator
+      if (peek().value() == '=' && peek(1).value() == '=') {
+          consume(); // Consume first '='
+          consume(); // Consume second '='
+          tokens.push_back({ .type = TokenType::eq_eq });
+          continue;
       }
 
       if (std::isalpha(peek().value())) {

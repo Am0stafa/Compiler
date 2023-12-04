@@ -74,11 +74,16 @@ struct NodeBinExprDiv {
     NodeExpr* rhs;
 };
 
-// Node representing any binary expression
-struct NodeBinExpr {
-    std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*> var;
+// Node representing a binary expression ==
+struct NodeBinExprEq {
+    NodeExpr* lhs;
+    NodeExpr* rhs;
 };
 
+// Node representing any binary expression
+struct NodeBinExpr {
+    std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*> var;
+};
 // Node representing a terminal symbol in an expression
 struct NodeTerm {
     std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*, NodeBoolLit*> var;
@@ -242,6 +247,13 @@ public:
       add->lhs = expr_lhs2;
       add->rhs = expr_rhs.value();
       expr->var = add;
+    }
+    else if (op.type == TokenType::eq_eq) {
+        auto eq = m_allocator.alloc<NodeBinExprEq>();
+        expr_lhs2->var = expr_lhs->var;
+        eq->lhs = expr_lhs2;
+        eq->rhs = expr_rhs.value();
+        expr->var = eq;
     }
     else if (op.type == TokenType::star) {
       auto multi = m_allocator.alloc<NodeBinExprMulti>();

@@ -128,6 +128,16 @@ public:
         gen.m_output << "    div rbx\n";
         gen.push("rax");
       }
+      void operator()(const NodeBinExprEq* eq) const {
+        gen.gen_expr(eq->rhs);
+        gen.gen_expr(eq->lhs);
+        gen.pop("rax");
+        gen.pop("rbx");
+        gen.m_output << "    cmp rax, rbx\n";
+        gen.m_output << "    sete al\n";
+        gen.m_output << "    movzx rax, al\n";
+        gen.push("rax");
+      }
   };
 
       BinExprVisitor visitor { .gen = *this };
