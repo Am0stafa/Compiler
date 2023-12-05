@@ -10,6 +10,7 @@ let quotient = a / b; // 2
 
 // Testing boolean literals and equality operator
 let isTen = 10 == a; // true
+
 let isFalse = false;
 let isTrue = true;
 
@@ -38,6 +39,10 @@ while (counter < 5) {
 for (let i = 0; i < 10; i = i + 1) {
     // Loop body
 }
+
+let greeting = "Hello, Hydro!";
+let newlineStr = "Line1\nLine2";
+let tabbedStr = "Item1\tItem2";
 
 if (product > 30 && quotient < 3) {
     exit(2); // Exit code 2 if product is greater than 30 AND quotient is less than 3

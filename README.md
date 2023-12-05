@@ -45,10 +45,14 @@ The grammar of the Hydro language is defined using the Backus-Naur Form (BNF):
          | [Expr] / [Expr]  { prec = -1 }
 
 [Term] -> int_lit
+       | string_lit
+       | bool_lit
        | ident
        | ([Expr])
        | true
        | false
+[bool_lit] -> true | false
+[string_lit] -> "([^"\\]*(\\.[^"\\]*)*)" | '([^'\\]*(\\.[^'\\]*)*)'
 ```
 
 ## Grammar Explanation

@@ -74,6 +74,8 @@ enum class TokenType{
   or_or,    // for '||' operator
   while_,
   for_,
+  string_lit, 
+  bool_lit, 
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -150,6 +152,53 @@ public:
         tokens.push_back({ .type = TokenType::and_and });
         continue;
       }
+      
+      // Handle string literals
+      if (peek() == '"') {
+          consume(); // Consume the opening quote
+          std::string str_val;
+          bool is_escaped = false; // Track escaped state
+
+          while (peek().has_value()) {
+              char current_char = peek();
+
+              if (is_escaped) {
+                  // Handle various escape sequences
+                  switch (current_char) {
+                      case 'n': str_val.push_back('\n'); break;
+                      case 't': str_val.push_back('\t'); break;
+                      case '"': str_val.push_back('"'); break;
+                      case '\\': str_val.push_back('\\'); break;
+                      // ... other escape sequences as needed ...
+                      default: 
+                          // Handle unknown escape sequences
+                          std::cerr << "Unknown escape sequence: \\" << current_char << std::endl;
+                          exit(EXIT_FAILURE);
+                  }
+                  consume(); // Consume the escaped character
+                  is_escaped = false; // Reset escaped state
+              } else {
+                  if (current_char == '\\') {
+                      is_escaped = true; // Next character is escaped
+                      consume(); // Consume the backslash
+                  } else if (current_char == '"') {
+                      consume(); // Consume the closing quote
+                      break; // End of string literal
+                  } else {
+                      str_val.push_back(current_char); // Add character to string
+                      consume(); // Consume the character
+                  }
+              }
+          }
+
+          if (!peek().has_value() || peek() != '"') {
+              // Handle error: unclosed string literal
+              std::cerr << "Syntax error: unclosed string literal" << std::endl;
+              exit(EXIT_FAILURE);
+          }
+
+          tokens.push_back({ .type = TokenType::string_lit, .value = str_val });
+      }
 
       // Check for '||' operator
       if (peek().value() == '|' && peek(1).value() == '|') {
@@ -197,6 +246,11 @@ public:
           }
           else if (buf == "for") {
             tokens.push_back({ .type = TokenType::for_ });
+            buf.clear();
+          }
+          else if (buf == "true" || buf == "false") {
+            TokenType type = (buf == "true") ? TokenType::true_ : TokenType::false_;
+            tokens.push_back({ .type = type });
             buf.clear();
           }
           else {

@@ -98,6 +98,16 @@ struct NodeStmtWhile {
     NodeScope* scope;
 };
 
+// Node representing a string literal
+struct NodeStringLit {
+    std::string value;
+};
+
+// Node representing a boolean literal true or false constants
+struct NodeBoolLit {
+    bool value;
+};
+
 // Node representing a for loop
 struct NodeStmtFor {
     NodeExpr* init;
@@ -569,6 +579,24 @@ public:
         auto stmt = m_allocator.alloc<NodeStmt>();
         stmt->var = stmt_for;
         return stmt;
+    }
+    
+    else if (auto token = try_consume(TokenType::string_lit)) {
+      auto node = m_allocator.alloc<NodeStringLit>();
+      node->value = token->value.value(); // Assuming token->value holds the string
+      return node;
+    }
+
+    else if (auto token = try_consume(TokenType::true_)) {
+      auto node = m_allocator.alloc<NodeBoolLit>();
+      node->value = true;
+      return node;
+    }
+
+    else if (auto token = try_consume(TokenType::false_)) {
+        auto node = m_allocator.alloc<NodeBoolLit>();
+        node->value = false;
+        return node;
     }
     else {
         return {};

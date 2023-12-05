@@ -46,7 +46,13 @@ public:
     : m_prog(std::move(prog)) // take the program out put from the parser (AST)
   {
   }
+    std::stringstream m_data_section; // To store string literals
 
+    // Utility function to generate a unique label for each string literal
+    std::string make_string_label() {
+        static int string_label_count = 0;
+        return "str_lit_" + std::to_string(string_label_count++);
+    }
   // A generate for each AST node, just as we parse each AST node we will generate each AST node as we traverse the tree
   void gen_term(const NodeTerm* term){
   struct TermVisitor {
@@ -229,6 +235,21 @@ public:
       end_scope();
   }
 
+  std::string escape_string(const std::string& str) {
+    std::string escaped;
+    for (char c : str) {
+        switch (c) {
+            case '\n': escaped += "\\n"; break;
+            case '\t': escaped += "\\t"; break;
+            case '\"': escaped += "\\\""; break;
+            case '\\': escaped += "\\\\"; break;
+            // Other escape sequences as needed
+            default: escaped += c;
+        }
+    }
+    return escaped;
+  }
+
   void gen_stmt(const NodeStmt* stmt){
 
     struct StmtVisitor {
@@ -317,6 +338,7 @@ public:
         gen.m_output << "    jmp " << start_label << "\n";
         gen.m_output << end_label << ":\n";
       }
+
       void operator()(const NodeStmtFor* stmt_for) const {
         std::string start_label = gen.create_label();
         std::string end_label = gen.create_label();
@@ -342,23 +364,50 @@ public:
         gen.m_output << end_label << ":\n";
       }
 
+      void operator()(const NodeBoolLit* bool_lit) const {
+        int boolValue = bool_lit->value ? 1 : 0;
+        gen.m_output << "    mov rax, " << boolValue << "\n";
+        gen.push("rax");
+      }
+      
+      void operator()(const NodeStringLit* str_lit) const {
+          std::string label = gen.make_string_label();
+
+          // Escape the string literal and store it in the data section
+          std::string escaped_str = escape_string(str_lit->value);
+          gen.m_data_section << label << ": db \"" << escaped_str << "\", 0\n"; // Null-terminated string
+
+          // Load the address of the string into a register
+          gen.m_output << "    lea rax, [" << label << "]\n";
+          gen.push("rax");
+      }
+
   };
 
     StmtVisitor visitor { .gen = *this };
     std::visit(visitor, stmt->var);
   }
 
-  [[nodiscard]] std::string gen_prog(){
-    m_output << "global _start\n_start:\n";
+  [[nodiscard]] std::string gen_prog() {
+      // Start with the text section which includes the main program
+      m_output << "global _start\nsection .text\n_start:\n";
 
-    for (const NodeStmt* stmt : m_prog.stmts) {
-      gen_stmt(stmt);
-    }
+      // Generate the assembly code for each statement in the program
+      for (const NodeStmt* stmt : m_prog.stmts) {
+          gen_stmt(stmt);
+      }
 
-    m_output << "    mov rax, 60\n";
-    m_output << "    mov rdi, 0\n";
-    m_output << "    syscall\n";
-    return m_output.str();
+      // Common exit sequence for the program
+      m_output << "    mov rax, 60\n";  // syscall number for exit in x86-64 Linux
+      m_output << "    mov rdi, 0\n";   // exit status
+      m_output << "    syscall\n";
+
+      // Include the data section if there are string literals
+      if (!m_data_section.str().empty()) {
+          m_output << "section .data\n" << m_data_section.str();
+      }
+
+      return m_output.str();
   }
 
 private:
