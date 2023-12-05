@@ -92,6 +92,12 @@ struct NodeBinExprOr {
     NodeExpr* rhs;
 };
 
+// Node representing a scope for while loop
+struct NodeStmtWhile {
+    NodeExpr* expr;
+    NodeScope* scope;
+};
+
 // Node representing any binary expression
 struct NodeBinExpr {
     std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*, NodeBinExprAnd*, NodeBinExprOr*> var;
@@ -507,6 +513,27 @@ public:
 
         auto stmt = m_allocator.alloc<NodeStmt>();
         stmt->var = stmt_else_if.value();
+        return stmt;
+    }
+
+    else if (auto while_token = try_consume(TokenType::while_)) {
+        auto expr = parse_expr();
+        if (!expr.has_value()) {
+            std::cerr << "Expected an expression after 'while'" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        auto scope = parse_scope();
+        if (!scope.has_value()) {
+            std::cerr << "Expected a scope after 'while' condition" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto stmt_while = m_allocator.alloc<NodeStmtWhile>();
+        stmt_while->expr = expr.value();
+        stmt_while->scope = scope.value();
+
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_while;
         return stmt;
     }
 

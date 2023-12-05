@@ -72,6 +72,7 @@ enum class TokenType{
   eq_eq, // ==
   and_and,  // for '&&' operator
   or_or,    // for '||' operator
+  while_,
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -187,6 +188,10 @@ public:
           }
           else if (buf == "else if") {
             tokens.push_back({ .type = TokenType::else_if });
+            buf.clear();
+          }
+          else if (buf == "while") {
+            tokens.push_back({ .type = TokenType::while_ });
             buf.clear();
           }
           else {

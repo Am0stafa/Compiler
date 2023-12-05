@@ -233,8 +233,7 @@ public:
 
     struct StmtVisitor {
       Generator& gen;
-      void operator()(const NodeStmtExit* stmt_exit) const
-      {
+      void operator()(const NodeStmtExit* stmt_exit) const {
         gen.gen_expr(stmt_exit->expr);
         gen.m_output << "    mov rax, 60\n";
         gen.pop("rdi"); // pop from the stack and put it in rdi
@@ -243,7 +242,7 @@ public:
 
       // operator overload that allows objects of a class to be called as if they were functions.
       // specifically designed to handle 'let' statement nodes (NodeStmtLet) in an Abstract Syntax Tree (AST).
-      void operator()(const NodeStmtLet* stmt_let) const{
+      void operator()(const NodeStmtLet* stmt_let) const {
         // looks for the variable name in the existing variable list to ensure that the variable has not been declared before in the same scope.
         auto it = std::find_if(gen.m_vars.cbegin(), gen.m_vars.cend(), [&](const Var& var) {
           return var.name == stmt_let->ident.value.value();  // [&] Capture all automatic (local) variables odr-used 
@@ -259,14 +258,15 @@ public:
         gen.gen_expr(stmt_let->expr);
       }
 
-      void operator()(const NodeScope* scope) const
-      {
+      void operator()(const NodeScope* scope) const {
         gen.gen_scope(scope);
       }
+
       void operator()(const NodeStmtElse* stmt_else) const {
         // Simply generate the code within the else scope, as it is unconditional.
         gen.gen_scope(stmt_else->scope);
       }
+
       void operator()(const NodeStmtElseIf* stmt_else_if) const {
         std::string end_label = gen.create_label(); // Label for the end of the entire if-else chain
 
@@ -292,8 +292,8 @@ public:
         // End label for the entire if-else chain
         gen.m_output << end_label << ":\n";
       }
-      void operator()(const NodeStmtIf* stmt_if) const
-      {
+
+      void operator()(const NodeStmtIf* stmt_if) const {
         gen.gen_expr(stmt_if->expr);
         gen.pop("rax");
         std::string label = gen.create_label();
@@ -302,6 +302,22 @@ public:
         gen.gen_scope(stmt_if->scope);
         gen.m_output << label << ":\n";
       }
+
+      void operator()(const NodeStmtWhile* stmt_while) const {
+        std::string start_label = gen.create_label();
+        std::string end_label = gen.create_label();
+
+        gen.m_output << start_label << ":\n";
+        gen.gen_expr(stmt_while->expr);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";
+        gen.m_output << "    je " << end_label << "\n";
+
+        gen.gen_scope(stmt_while->scope);
+        gen.m_output << "    jmp " << start_label << "\n";
+        gen.m_output << end_label << ":\n";
+      }
+      
   };
 
     StmtVisitor visitor { .gen = *this };

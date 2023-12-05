@@ -29,6 +29,12 @@ if (sum == 15) {
     exit(1); // Exit code 1 if sum is 15
 }
 
+let counter = 0;
+while (counter < 5) {
+    // Increment counter or add other logic
+    counter = counter + 1;
+}
+
 if (product > 30 && quotient < 3) {
     exit(2); // Exit code 2 if product is greater than 30 AND quotient is less than 3
 }
