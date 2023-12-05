@@ -112,6 +112,18 @@ struct NodeStmtExit {
     NodeExpr* expr;
 };
 
+// Node representing an else statement
+struct NodeStmtElse {
+    NodeScope* scope;
+};
+
+// Node representing an else if statement
+struct NodeStmtElseIf {
+    NodeExpr* expr;
+    NodeScope* scope;
+    NodeStmtElseIf* next; // For chaining else if clauses
+};
+
 // Node representing a let statement
 struct NodeStmtLet {
     Token ident;
@@ -131,6 +143,7 @@ struct NodeStmtIf {
     NodeExpr* expr;
     NodeScope* scope;
 };
+
 
 // Node representing a statement
 struct NodeStmt {
@@ -329,6 +342,31 @@ public:
     return scope;
   }
 
+  std::optional<NodeStmtElseIf*> parse_else_if_chain() {
+    auto expr = parse_expr();
+    if (!expr.has_value()) {
+        std::cerr << "Expected an expression after 'else if'" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto scope = parse_scope();
+    if (!scope.has_value()) {
+        std::cerr << "Expected a scope after 'else if' condition" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    auto stmt_else_if = m_allocator.alloc<NodeStmtElseIf>();
+    stmt_else_if->expr = expr.value();
+    stmt_else_if->scope = scope.value();
+    stmt_else_if->next = nullptr;
+
+    // Check for a chained else if
+    if (peek().has_value() && peek().value().type == TokenType::else_if) {
+        stmt_else_if->next = parse_else_if_chain().value();
+    }
+
+    return stmt_else_if;
+  }
+
 /**
  * The `parse_stmt` function is part of the parsing process in a compiler,
  * responsible for analyzing and transforming a segment of the input program
@@ -387,68 +425,94 @@ public:
       return stmt;
     }
 
-      else if ( //check that the one after that is an identifier and then the one after that is an identifier
-        peek().has_value() && peek().value().type == TokenType::let && peek(1).has_value()
-        && peek(1).value().type == TokenType::ident && peek(2).has_value()
-        && peek(2).value().type == TokenType::eq
-              ) {
-        consume();
-        auto stmt_let = m_allocator.alloc<NodeStmtLet>();
-        stmt_let->ident = consume();
-        consume();
-        // if the expression is parsed correctly
-        if (auto expr = parse_expr()) {
-            stmt_let->expr = expr.value();
-        }
-        else {
-            std::cerr << "Invalid expression" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        // check if it had a semicol
-        try_consume(TokenType::semi, "Expected `;`");
-        auto stmt = m_allocator.alloc<NodeStmt>();
-        stmt->var = stmt_let;
-        return stmt; // return a node statement
+    else if ( //check that the one after that is an identifier and then the one after that is an identifier
+      peek().has_value() && peek().value().type == TokenType::let && peek(1).has_value()
+      && peek(1).value().type == TokenType::ident && peek(2).has_value()
+      && peek(2).value().type == TokenType::eq
+            ) {
+      consume();
+      auto stmt_let = m_allocator.alloc<NodeStmtLet>();
+      stmt_let->ident = consume();
+      consume();
+      // if the expression is parsed correctly
+      if (auto expr = parse_expr()) {
+          stmt_let->expr = expr.value();
       }
-
-      else if (peek().has_value() && peek().value().type == TokenType::open_curly) {
-        if (auto scope = parse_scope()) {
-          auto stmt = m_allocator.alloc<NodeStmt>();
-          stmt->var = scope.value();
-          return stmt;
-        }
-        else {
-          std::cerr << "Invalid scope" << std::endl;
-          exit(EXIT_FAILURE);
-        }
-      }
-
-      else if (auto if_ = try_consume(TokenType::if_)) {
-        try_consume(TokenType::open_paren, "Expected `(`");
-        auto stmt_if = m_allocator.alloc<NodeStmtIf>();
-        if (auto expr = parse_expr()) {
-          stmt_if->expr = expr.value();
-        }
-        else {
+      else {
           std::cerr << "Invalid expression" << std::endl;
           exit(EXIT_FAILURE);
-        }
-        try_consume(TokenType::close_paren, "Expected `)`");
-        if (auto scope = parse_scope()) {
-          stmt_if->scope = scope.value();
-        }
-        else {
-          std::cerr << "Invalid scope {}" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+      }
+      // check if it had a semicol
+      try_consume(TokenType::semi, "Expected `;`");
+      auto stmt = m_allocator.alloc<NodeStmt>();
+      stmt->var = stmt_let;
+      return stmt; // return a node statement
+    }
+
+    else if (peek().has_value() && peek().value().type == TokenType::open_curly) {
+      if (auto scope = parse_scope()) {
         auto stmt = m_allocator.alloc<NodeStmt>();
-        stmt->var = stmt_if;
+        stmt->var = scope.value();
         return stmt;
       }
-
       else {
-          return {};
+        std::cerr << "Invalid scope" << std::endl;
+        exit(EXIT_FAILURE);
       }
+    }
+
+    else if (auto if_ = try_consume(TokenType::if_)) {
+      try_consume(TokenType::open_paren, "Expected `(`");
+      auto stmt_if = m_allocator.alloc<NodeStmtIf>();
+      if (auto expr = parse_expr()) {
+        stmt_if->expr = expr.value();
+      }
+      else {
+        std::cerr << "Invalid expression" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      try_consume(TokenType::close_paren, "Expected `)`");
+      if (auto scope = parse_scope()) {
+        stmt_if->scope = scope.value();
+      }
+      else {
+        std::cerr << "Invalid scope {}" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      auto stmt = m_allocator.alloc<NodeStmt>();
+      stmt->var = stmt_if;
+      return stmt;
+    }
+    
+    else if (auto else_token = try_consume(TokenType::else_)) {
+        auto scope = parse_scope();
+        if (!scope.has_value()) {
+            std::cerr << "Expected a scope after 'else'" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        auto stmt_else = m_allocator.alloc<NodeStmtElse>();
+        stmt_else->scope = scope.value();
+
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_else;
+        return stmt;
+    }
+    
+    else if (auto else_if_token = try_consume(TokenType::else_if)) {
+        auto stmt_else_if = parse_else_if_chain();
+        if (!stmt_else_if.has_value()) {
+            std::cerr << "Invalid else if chain" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_else_if.value();
+        return stmt;
+    }
+
+    else {
+        return {};
+    }
   }
 
 /**

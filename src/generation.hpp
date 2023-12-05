@@ -263,6 +263,35 @@ public:
       {
         gen.gen_scope(scope);
       }
+      void operator()(const NodeStmtElse* stmt_else) const {
+        // Simply generate the code within the else scope, as it is unconditional.
+        gen.gen_scope(stmt_else->scope);
+      }
+      void operator()(const NodeStmtElseIf* stmt_else_if) const {
+        std::string end_label = gen.create_label(); // Label for the end of the entire if-else chain
+
+        // Generate code for each else-if in the chain
+        while (stmt_else_if != nullptr) {
+          std::string next_label = gen.create_label(); // Label for the next else-if
+
+          // Evaluate the else-if condition
+          gen.gen_expr(stmt_else_if->expr);
+          gen.pop("rax");
+          gen.m_output << "    cmp rax, 0\n";
+          gen.m_output << "    je " << next_label << "\n";
+
+          // Generate the code for the else-if scope
+          gen.gen_scope(stmt_else_if->scope);
+          gen.m_output << "    jmp " << end_label << "\n";
+
+          // Set up the next else-if (or else)
+          gen.m_output << next_label << ":\n";
+          stmt_else_if = stmt_else_if->next;
+        }
+
+        // End label for the entire if-else chain
+        gen.m_output << end_label << ":\n";
+      }
       void operator()(const NodeStmtIf* stmt_if) const
       {
         gen.gen_expr(stmt_if->expr);

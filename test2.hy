@@ -36,3 +36,25 @@ if (product > 30 && quotient < 3) {
 if (isTrue || isFalse) {
     exit(3); // Exit code 3 if isTrue OR isFalse is true
 }
+
+// Testing if-else and else if statements
+if (sum == 20) {
+    exit(4);
+} else if (diff == 5) {
+    exit(5); // Exit code 5 if diff is 5
+} else {
+    exit(6);
+}
+
+// Nested if-else if-else statements
+if (sum == 15) {
+    if (diff > 5) {
+        exit(7);
+    } else if (diff == 5) {
+        exit(8); // Exit code 8 if diff is 5
+    } else {
+        exit(9);
+    }
+} else {
+    exit(10);
+}

@@ -65,6 +65,8 @@ enum class TokenType{
   open_curly,
   close_curly,
   if_, // as if is a keyword in C++
+  else_,
+  else_if,
   true_,
   false_,
   eq_eq, // ==
@@ -177,6 +179,14 @@ public:
           }
           else if (buf == "if") {
             tokens.push_back({ .type = TokenType::if_ });
+            buf.clear();
+          }
+          else if (buf == "else") {
+            tokens.push_back({ .type = TokenType::else_ });
+            buf.clear();
+          }
+          else if (buf == "else if") {
+            tokens.push_back({ .type = TokenType::else_if });
             buf.clear();
           }
           else {
