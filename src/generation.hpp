@@ -317,7 +317,31 @@ public:
         gen.m_output << "    jmp " << start_label << "\n";
         gen.m_output << end_label << ":\n";
       }
-      
+      void operator()(const NodeStmtFor* stmt_for) const {
+        std::string start_label = gen.create_label();
+        std::string end_label = gen.create_label();
+
+        // Generate initialization
+        gen.gen_expr(stmt_for->init);
+
+        gen.m_output << start_label << ":\n";
+
+        // Generate condition check
+        gen.gen_expr(stmt_for->condition);
+        gen.pop("rax");
+        gen.m_output << "    cmp rax, 0\n";
+        gen.m_output << "    je " << end_label << "\n";
+
+        // Generate the for loop scope
+        gen.gen_scope(stmt_for->scope);
+
+        // Generate iteration
+        gen.gen_expr(stmt_for->iteration);
+
+        gen.m_output << "    jmp " << start_label << "\n";
+        gen.m_output << end_label << ":\n";
+      }
+
   };
 
     StmtVisitor visitor { .gen = *this };

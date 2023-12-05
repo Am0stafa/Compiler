@@ -35,6 +35,10 @@ while (counter < 5) {
     counter = counter + 1;
 }
 
+for (let i = 0; i < 10; i = i + 1) {
+    // Loop body
+}
+
 if (product > 30 && quotient < 3) {
     exit(2); // Exit code 2 if product is greater than 30 AND quotient is less than 3
 }

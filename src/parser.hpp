@@ -98,6 +98,14 @@ struct NodeStmtWhile {
     NodeScope* scope;
 };
 
+// Node representing a for loop
+struct NodeStmtFor {
+    NodeExpr* init;
+    NodeExpr* condition;
+    NodeExpr* iteration;
+    NodeScope* scope;
+};
+
 // Node representing any binary expression
 struct NodeBinExpr {
     std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*, NodeBinExprAnd*, NodeBinExprOr*> var;
@@ -537,6 +545,31 @@ public:
         return stmt;
     }
 
+    else if (auto for_token = try_consume(TokenType::for_)) {
+        try_consume(TokenType::open_paren, "Expected `(` after 'for'");
+        auto init = parse_expr(); // Assuming initialization is an expression
+        try_consume(TokenType::semi, "Expected `;` after initialization");
+        auto condition = parse_expr();
+        try_consume(TokenType::semi, "Expected `;` after condition");
+        auto iteration = parse_expr();
+        try_consume(TokenType::close_paren, "Expected `)` after iteration");
+
+        auto scope = parse_scope();
+        if (!scope.has_value()) {
+            std::cerr << "Expected a scope after 'for' loop" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto stmt_for = m_allocator.alloc<NodeStmtFor>();
+        stmt_for->init = init.value();
+        stmt_for->condition = condition.value();
+        stmt_for->iteration = iteration.value();
+        stmt_for->scope = scope.value();
+
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = stmt_for;
+        return stmt;
+    }
     else {
         return {};
     }
