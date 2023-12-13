@@ -53,6 +53,53 @@ public:
         static int string_label_count = 0;
         return "str_lit_" + std::to_string(string_label_count++);
     }
+
+    void gen_func_prologue() {
+    m_output << "    push rbp\n";
+    m_output << "    mov rbp, rsp\n";
+    // Reserve space for local variables if needed
+    }
+
+    void gen_func_epilogue() {
+        m_output << "    mov rsp, rbp\n";
+        m_output << "    pop rbp\n";
+        m_output << "    ret\n";
+    }
+
+    void gen_param_passing(const std::vector<Token>& params) {
+      for (int i = params.size() - 1; i >= 0; --i) {
+          // Assuming parameters are pushed onto the stack in reverse order before the call
+          m_output << "    push [rbp + " << (i + 2) * 8 << "]\n"; // +2 for return address and old rbp
+      }
+    }
+
+    void gen_func_def(const NodeFuncDef* func_def) {
+      m_output << func_def->ident.value.value() << ":\n";
+      gen_func_prologue();
+      gen_param_passing(func_def->params);
+      gen_scope(func_def->body);
+      gen_func_epilogue();
+    }
+
+    void gen_func_call(const NodeFuncCall* func_call) {
+      // Push arguments in reverse order
+      for (auto it = func_call->args.rbegin(); it != func_call->args.rend(); ++it) {
+          gen_expr(*it);
+      }
+      m_output << "    call " << func_call->ident.value.value() << "\n";
+
+      // Adjust the stack pointer after the call
+      if (!func_call->args.empty()) {
+          m_output << "    add rsp, " << func_call->args.size() * 8 << "\n";
+      }
+    }
+
+    void gen_return_stmt(const NodeReturn* node_return) {
+        gen_expr(node_return->expr);
+        m_output << "    pop rax\n"; // Assuming the return value is at the top of the stack
+        gen_func_epilogue();
+    }
+
   // A generate for each AST node, just as we parse each AST node we will generate each AST node as we traverse the tree
   void gen_term(const NodeTerm* term){
   struct TermVisitor {
@@ -220,6 +267,9 @@ public:
           {
               gen.gen_bin_expr(bin_expr);
           }
+          void operator()(const NodeFuncCall* func_call) const {
+            gen.gen_func_call(func_call);
+          }  
       };
 
       ExprVisitor visitor { .gen = *this };
@@ -286,6 +336,14 @@ public:
       void operator()(const NodeStmtElse* stmt_else) const {
         // Simply generate the code within the else scope, as it is unconditional.
         gen.gen_scope(stmt_else->scope);
+      }
+
+      void operator()(const NodeFuncDef* func_def) const {
+          gen.gen_func_def(func_def);
+      }
+
+      void operator()(const NodeReturn* return_stmt) const {
+          gen.gen_return_stmt(return_stmt);
       }
 
       void operator()(const NodeStmtElseIf* stmt_else_if) const {

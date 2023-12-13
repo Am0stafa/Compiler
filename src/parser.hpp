@@ -115,6 +115,24 @@ struct NodeStmtFor {
     NodeExpr* iteration;
     NodeScope* scope;
 };
+struct NodeFuncDef {
+    Token ident;                // Function name identifier
+    std::vector<Token> params;  // Parameter identifiers
+    NodeScope* body;            // Function body
+};
+
+struct NodeFuncCall {
+    Token ident;                // Function name identifier
+    std::vector<NodeExpr*> args; // Arguments in the function call
+};
+
+struct NodeParamList {
+    std::vector<Token> params;  // Parameter identifiers
+};
+
+struct NodeReturn {
+    NodeExpr* expr;             // Expression to return
+};
 
 // Node representing any binary expression
 struct NodeBinExpr {
@@ -191,6 +209,65 @@ public:
     , m_allocator(1024 * 1024 * 4) // 4 mb memory to allocate memory for the AST nodes
   {
   }
+  std::optional<NodeFuncDef*> parse_func_def() {
+      auto func_token = expect(TokenType::function, "Expected 'function' keyword");
+
+      auto ident_token = expect(TokenType::ident, "Expected function name identifier");
+      auto params = parse_param_list();
+      auto body = parse_scope();
+
+      auto func_def = m_allocator.alloc<NodeFuncDef>();
+      func_def->ident = ident_token.value();
+      func_def->params = std::move(params);
+      func_def->body = body.value();
+
+      return func_def;
+  }
+
+  std::vector<Token> parse_param_list() {
+    expect(TokenType::open_paren, "Expected '(' for parameter list");
+    std::vector<Token> params;
+
+    while (peek().has_value() && peek()->type != TokenType::close_paren) {
+        auto param = expect(TokenType::ident, "Expected parameter identifier");
+        params.push_back(param.value());
+
+        if (peek().has_value() && peek()->type == TokenType::comma) {
+            consume(); // Consume comma
+        }
+    }
+
+    expect(TokenType::close_paren, "Expected ')' after parameters");
+    return params;
+  }
+
+  std::optional<NodeFuncCall*> parse_func_call() {
+    auto ident_token = expect(TokenType::ident, "Expected function name identifier");
+
+    expect(TokenType::open_paren, "Expected '(' for function call");
+    std::vector<NodeExpr*> args;
+
+    while (peek().has_value() && peek()->type != TokenType::close_paren) {
+        auto arg = parse_expr();
+        if (!arg.has_value()) {
+            return {}; // Error handling
+        }
+        args.push_back(arg.value());
+
+        if (peek().has_value() && peek()->type == TokenType::comma) {
+            consume(); // Consume comma
+        }
+    }
+
+    expect(TokenType::close_paren, "Expected ')' after function call arguments");
+
+    auto func_call = m_allocator.alloc<NodeFuncCall>();
+    func_call->ident = ident_token.value();
+    func_call->args = std::move(args);
+
+    return func_call;
+  }
+
 
   std::optional<NodeTerm*> parse_term(){
       if (auto token = try_consume(TokenType::true_)) {
@@ -234,6 +311,11 @@ public:
         term->var = term_paren;
         return term;
       }
+      else if (auto func_def = parse_func_def()) {
+        auto stmt = m_allocator.alloc<NodeStmt>();
+        stmt->var = func_def.value();
+        return stmt;
+      }
       else {
         return {};
       }
@@ -248,6 +330,12 @@ public:
   // at any point, an empty optional is returned.
   //create the full trie to make the code generation for it
   std::optional<NodeExpr*> parse_expr(int min_prec = 0){
+    // Check if the current token sequence represents a function call
+    if (peek().has_value() && peek()->type == TokenType::ident && 
+        peek(1).has_value() && peek(1)->type == TokenType::open_paren) {
+      return parse_func_call(); // parse_func_call handles the parsing of function calls
+    }
+    
     std::optional<NodeTerm*> term_lhs = parse_term();
     if (!term_lhs.has_value()) {
       return {}; 

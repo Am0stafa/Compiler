@@ -75,7 +75,10 @@ enum class TokenType{
   while_,
   for_,
   string_lit, 
-  bool_lit, 
+  bool_lit,
+  function,  
+  return_,
+  comma,
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -248,6 +251,14 @@ public:
             tokens.push_back({ .type = TokenType::for_ });
             buf.clear();
           }
+          else if (buf == "function") {
+            tokens.push_back({ .type = TokenType::function });
+            buf.clear();
+          }
+          else if (buf == "return") {
+            tokens.push_back({ .type = TokenType::return_ });
+            buf.clear();
+          }
           else if (buf == "true" || buf == "false") {
             TokenType type = (buf == "true") ? TokenType::true_ : TokenType::false_;
             tokens.push_back({ .type = type });
@@ -313,9 +324,13 @@ public:
         consume();
         tokens.push_back({ .type = TokenType::close_curly });
       }
+      else if (peek() == ',') {
+        consume();
+        tokens.push_back({ .type = TokenType::comma });
+      }
       else if (std::isspace(peek().value())) {
         consume();
-      }
+      } 
       else {
         std::cerr << "\033[31mSyntax error\033[0m" << std::endl;
         exit(EXIT_FAILURE);
