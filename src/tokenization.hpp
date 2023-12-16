@@ -79,6 +79,7 @@ enum class TokenType{
   function,  
   return_,
   comma,
+  print,
 };
 
 // check the precedence of binary operators and return the precedence of each. Basically return the precedence of the operator
@@ -220,10 +221,12 @@ public:
           if (buf == "true") {
             tokens.push_back({ .type = TokenType::true_ });
             buf.clear();
-          } else if (buf == "false") {
+          } 
+          else if (buf == "false") {
             tokens.push_back({ .type = TokenType::false_ });
             buf.clear();
-          }else if (buf == "exit") {
+          }
+          else if (buf == "exit") {
             tokens.push_back({ .type = TokenType::exit });
             buf.clear();
           }
@@ -263,6 +266,9 @@ public:
             TokenType type = (buf == "true") ? TokenType::true_ : TokenType::false_;
             tokens.push_back({ .type = type });
             buf.clear();
+          }
+          else if (buf == "print") {
+            tokens.push_back({ .type = TokenType::print });
           }
           else {
             // variable name

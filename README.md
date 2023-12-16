@@ -18,13 +18,29 @@ The grammar of the Hydro language is defined using the Backus-Naur Form (BNF):
 ```plaintext
 [Prog] -> [Stmt]*
 
-[Stmt] -> exit([Expr]);
-       | let ident = [Expr];
-       | if ([Expr])[Scope][ElseClause]
-       | while ([Expr])[Scope]
-       | for ([ForInit]; [Expr]; [Expr])[Scope]
-       | [FuncDef]
-       | [Expr]; // Including Function Calls
+[Stmt] -> [FuncDef]
+        | [FuncCall];
+        | [VarDecl];
+        | [Scope]
+        | [ControlStmt]
+
+[FuncDef] -> let ident = function ([FuncParams]) [Scope]
+
+[FuncParams] -> ident (, ident)* | ε
+
+[VarDecl] -> let ident = [Expr];
+
+[FuncCall] -> ident ([CallParams])
+
+[CallParams] -> [Expr] (, [Expr])* | ε
+
+[Scope] -> { [Stmt]* }
+
+[ControlStmt] -> exit([Expr]);
+              | if ([Expr])[Scope][ElseClause]
+              | while ([Expr])[Scope]
+              | for ([ForInit]; [Expr]; [Expr])[Scope]
+              | print([Expr]);
 
 [ForInit] -> let ident = [Expr]
            | [Expr]
@@ -33,11 +49,8 @@ The grammar of the Hydro language is defined using the Backus-Naur Form (BNF):
               | else if ([Expr])[Scope][ElseClause]
               | ε
 
-[Scope] -> { [Stmt]* }
-
 [Expr] -> [Term]
        | [BinExpr]
-       | [FuncCall]
 
 [BinExpr] -> [Expr] == [Expr] { prec = 2 }
          | [Expr] && [Expr] { prec = 1 }
@@ -54,18 +67,6 @@ The grammar of the Hydro language is defined using the Backus-Naur Form (BNF):
        | ([Expr])
        | true
        | false
-
-[FuncDef] -> let ident = function ([FuncParams]) [Scope]
-
-[FuncParams] -> ident (, ident)* | ε
-
-[FuncCall] -> ident ([CallParams])
-
-[CallParams] -> [Expr] (, [Expr])* | ε
-
-[bool_lit] -> true | false
-
-[string_lit] -> "([^"\\]*(\\.[^"\\]*)*)" | '([^'\\]*(\\.[^'\\]*)*)'
 ```
 
 ## Grammar Explanation

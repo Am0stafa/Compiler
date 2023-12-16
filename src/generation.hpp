@@ -39,6 +39,10 @@
 #include "parser.hpp"
 #include <cassert>
 #include <algorithm>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 class Generator {
 public:
@@ -439,9 +443,74 @@ public:
           gen.m_output << "    lea rax, [" << label << "]\n";
           gen.push("rax");
       }
+      // Function to determine if the expression is a string expression
+      bool is_string_expression(const NodeExpr* expr) {
+          if (!expr) {
+              return false; // Safety check in case expr is a nullptr
+          }
+
+          // Check if the variant holds a NodeStringLit
+          return std::holds_alternative<NodeStringLit*>(expr->var);
+      }
+      // Convert an integer in a register to its ASCII string representation
+      void int_to_string(const std::string& int_reg, const std::string& str_reg) {
+          // Assuming int_reg contains the integer and str_reg is where the string should be stored
+          // This is a simplified example. A full implementation would handle negative numbers and zero.
+          gen.m_output << "    mov " << str_reg << ", rsp\n";  // Use stack for temporary storage
+          gen.m_output << "    mov rsi, " << int_reg << "\n";  // Integer to convert
+          gen.m_output << "    mov rbx, 10\n";                // Divisor for conversion
+          std::string loop_label = gen.create_label();
+          gen.m_output << loop_label << ":\n";
+          gen.m_output << "    xor rdx, rdx\n";               // Clear rdx for division
+          gen.m_output << "    div rbx\n";                    // rax = rsi / 10, rdx = rsi % 10
+          gen.m_output << "    add dl, '0'\n";                // Convert to ASCII
+          gen.m_output << "    push rdx\n";                   // Push character onto stack
+          gen.m_output << "    mov rsi, rax\n";               // Prepare next digit
+          gen.m_output << "    test rax, rax\n";              // Check if rax is zero
+          gen.m_output << "    jnz " << loop_label << "\n";   // Repeat if not zero
+          // Now, reverse the string on the stack into str_reg
+          gen.reverse_stack_string(str_reg);
+      }
+      // Reverse a string stored on the stack into a register
+      void reverse_stack_string(const std::string& str_reg) {
+          // Implementation depends on your register management
+          // Here's a placeholder example
+          gen.m_output << "    lea " << str_reg << ", [rsp]\n"; // String start
+          // Add logic to reverse the string on the stack into str_reg
+      }
+
+      void operator()(const NodeStmtPrint* stmt_print) const {
+        gen.gen_expr(stmt_print->expr);
+
+        if (is_string_expression(stmt_print->expr)) {
+            // For string printing
+            gen.pop("rax");  // Address of the string
+            gen.m_output << "    mov rdi, rax\n"; // First argument (string pointer)
+            gen.setup_string_length("rax");       // Second argument (string length)
+            gen.syscall_write();
+        } else {
+            // For integer printing
+            gen.pop("rax");  // Integer value
+            gen.int_to_string("rax", "rbx"); // Convert integer to string, stored at rbx
+            gen.m_output << "    mov rdi, rbx\n"; // First argument (string pointer)
+            gen.setup_string_length("rbx");       // Second argument (string length)
+            gen.syscall_write();
+        }
+    }
+
+    // Performs the write syscall
+    void syscall_write() {
+        gen.m_output << "    mov rax, 1\n";  // Syscall number for write
+        gen.m_output << "    mov rdx, rsi\n"; // Length of the string
+        gen.m_output << "    mov rdi, 1\n";   // File descriptor (stdout)
+        gen.m_output << "    syscall\n";
+    }
 
   };
-
+    // NodeStmtPrint definition
+    struct NodeStmtPrint {
+        NodeExpr* expr;
+    };
     StmtVisitor visitor { .gen = *this };
     std::visit(visitor, stmt->var);
   }

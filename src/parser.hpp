@@ -31,6 +31,9 @@
 #include <variant>
 #include "./arena.hpp"
 #include "tokenization.hpp"
+#include <string>
+#include <memory>
+#include <vector>
 
 // Token representing an integer literal
 struct NodeTermIntLit {
@@ -134,6 +137,10 @@ struct NodeReturn {
     NodeExpr* expr;             // Expression to return
 };
 
+struct NodeStmtPrint {
+    NodeExpr* expr; // Expression to be printed
+};
+
 // Node representing any binary expression
 struct NodeBinExpr {
     std::variant<NodeBinExprAdd*, NodeBinExprMulti*, NodeBinExprSub*, NodeBinExprDiv*, NodeBinExprEq*, NodeBinExprAnd*, NodeBinExprOr*> var;
@@ -141,7 +148,7 @@ struct NodeBinExpr {
 
 // Node representing a terminal symbol in an expression
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*, NodeBoolLit*> var;
+    std::variant<std::shared_ptr<NodeTermIntLit>, std::shared_ptr<NodeTermIdent>, std::shared_ptr<NodeStringLit>> var;
 };
 
 // Node representing an expression
@@ -186,7 +193,6 @@ struct NodeStmtIf {
     NodeScope* scope;
 };
 
-
 // Node representing a statement
 struct NodeStmt {
     std::variant<NodeStmtExit*, NodeStmtLet*, NodeScope*, NodeStmtIf*> var;
@@ -222,6 +228,15 @@ public:
       func_def->body = body.value();
 
       return func_def;
+  }
+  
+  bool is_string_expression(const NodeExpr* expr) {
+      if (!expr || !expr->term) {
+          return false; // Return false if expr or its term is nullptr
+      }
+
+      // Check if the term is a string literal
+      return std::holds_alternative<std::shared_ptr<NodeStringLit>>(expr->term->var);
   }
 
   std::vector<Token> parse_param_list() {
@@ -685,6 +700,24 @@ public:
         auto node = m_allocator.alloc<NodeBoolLit>();
         node->value = false;
         return node;
+    }
+    else if (auto print_token = try_consume(TokenType::print)) {
+      // Expecting an expression after 'print'
+      auto expr = parse_expr();
+      if (!expr.has_value()) {
+        std::cerr << "Expected expression after 'print'" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+
+      // Expecting a semicolon after the print expression
+      try_consume(TokenType::semi, "Expected `;` after print statement");
+
+      auto stmt_print = m_allocator.alloc<NodeStmtPrint>();
+      stmt_print->expr = expr.value();
+      
+      auto stmt = m_allocator.alloc<NodeStmt>();
+      stmt->var = stmt_print;
+      return stmt;
     }
     else {
         return {};
