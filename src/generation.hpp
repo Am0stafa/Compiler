@@ -1,40 +1,6 @@
 // File that generates the assembly code (Code generation)
 // It takes in the root node of the AST and traverses that tree and while its traversing it generates the assembly code. I have different method for generating each node type.
 
-// It facilitate the generation of assembly code from an Abstract Syntax Tree (AST) which represents a higher-level programming language. This is a common task in compiler construction. Here's a breakdown of the significant parts of this class:
-
-// 1. Constructor:
-//    - The constructor initializes the `Generator` object with the root node of the AST (`NodeProg prog`), which it receives as an argument.
-
-// 2. Visitors:
-//    - The visitor pattern is used extensively to handle different types of nodes in the AST. Each visitor struct (`TermVisitor`, `BinExprVisitor`, `ExprVisitor`, `StmtVisitor`) contains overloads of the `operator()` method to handle different node types. This design allows for the separation of the algorithm from the object structure on which it operates.
-
-// 3. Generation Methods:
-//    - Methods like `gen_term`, `gen_bin_expr`, `gen_expr`, `gen_scope`, and `gen_stmt` are responsible for generating assembly code corresponding to different parts of the AST. They do this by creating instances of the appropriate visitor and applying them to the nodes they are responsible for.
-
-// 4. Assembly Code Generation:
-//    - Throughout these methods, assembly code is being generated and appended to a `std::stringstream` named `m_output`. The generated assembly code is typical of x86_64 assembly language, using instructions like `mov`, `sub`, `add`, `mul`, `div`, and `syscall`.
-
-// 5. Stack Management:
-//    - The `push` and `pop` methods are used to manage the stack during code generation. The `begin_scope` and `end_scope` methods handle entering and exiting scopes, adjusting the stack and cleaning up variables as necessary.
-
-// 6. Label Generation:
-//    - The `create_label` method generates unique labels for use in the assembly code, which is essential for handling control flow constructs like if-statements.
-
-// 7. Program Generation:
-//    - The `gen_prog` method orchestrates the process of generating the assembly code for the entire program. It initializes the output with a global entry point `_start`, iterates through the statements in the program, generating code for each, and finally appends the code to exit the program.
-
-// 8. Member Variables:
-//    - Various member variables like `m_prog`, `m_output`, `m_stack_size`, `m_vars`, `m_scopes`, and `m_label_count` are used to keep track of the state during code generation.
-
-// 9. Error Handling:
-//    - There's basic error handling in place, for example, checking for undeclared identifiers or re-declarations, and exiting with an error message if such issues are found.
-
-// 10. Data Structures:
-//     - Structures like `Var` and `NodeProg` presumably represent variables and program nodes, although their definitions are not provided in the snippet.
-
-// The `Generator` class encapsulates the logic for traversing the AST and generating the corresponding assembly code, following a structured and organized approach which is modular and easy to extend for handling additional node types or generating code for different target architectures. This class is a crucial part of the back-end of a compiler, turning the high-level representation of the program into low-level assembly code that can be assembled into machine code and executed on a computer.
-
 #pragma once
 #include "parser.hpp"
 #include <cassert>

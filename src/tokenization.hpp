@@ -1,21 +1,4 @@
 // This file task is lexical analysis or tokenization which processing individual
-// The key components and their functions in this file:
-
-// 1.Token Enumeration (`TokenType`):
-//    - This enumeration defines the different types of tokens that the tokenizer can recognize. These tokens are representations of syntactical elements in the source code such as keywords (`exit`, `let`, `if`), literals (`int_lit` for integer literals), operators (`plus`, `minus`, `star`, `fslash` for addition, subtraction, multiplication, and division respectively), and punctuation symbols (`semi`, `open_paren`, `close_paren`, `open_curly`, `close_curly` for semicolon, opening parenthesis, closing parenthesis, opening curly brace, and closing curly brace respectively).
-
-// 2.Binary Precedence Function (`bin_prec`):
-//    - This function is used to determine the precedence of binary operators. The precedence is used during parsing to resolve ambiguities in expressions.
-
-// 3.Token Structure (`Token`):
-//    - The Token structure holds information about a token, including its type and optionally its value. This allows for the representation of both operators and literals within the same structure.
-
-// 4.Tokenizer Class (`Tokenizer`):
-//    - This class is responsible for the process of tokenization, which is breaking down the input source code into a series of tokens.
-//    - The constructor takes a string representing the source code to be tokenized.
-//    - The `tokenize` method performs the tokenization process, iterating through the source code, recognizing tokens based on their syntactic categories, and collecting them into a vector<Token> which is returned.
-//    - The `peek` and `consume` methods are utility functions used in the process of analyzing the source code. `peek` looks ahead in the source code without advancing the position, while `consume` advances the position and returns the character at the current position, it is like i++.
-//    - Private members `m_src` and `m_index` hold the source code string and the current position within that string respectively.
 
 //How the tokens will look like
 // 1. For the line `let y = (10 - 2 * 3) / 2;`:
@@ -41,7 +24,6 @@
 //     - Token { type: TokenType::semi }
 
 // These tokens represent the syntactic elements found in the source code, and are categorized based on their types, such as keywords, identifiers, operators, literals, and punctuation symbols. They are ready to be fed into the next stage of the compilation process, which is parsing.
-
 
 #pragma once // include the file only once
 #include <string>
